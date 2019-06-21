@@ -1,4 +1,4 @@
-package assert
+package errors
 
 var ErrTag = struct {
 	UnknownErr string

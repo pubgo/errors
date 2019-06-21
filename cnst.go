@@ -1,4 +1,4 @@
-package assert
+package errors
 
 var Cfg = struct {
 	Debug bool
