@@ -36,24 +36,21 @@ func TestWrapM(t *testing.T) {
 	})
 }
 
-func a1() string {
-	defer Handle(func(m *M) {
-		m.Msg("test SWrap")
-	})
+func testFunc() {
+	defer Handle()
 
 	WrapM(errors.New("sbhbhbh"), func(m *M) {
 		m.Msg("test shhh").
 			M("ss", 1).
 			M("input", 2)
 	})
-
-	return "test a1"
 }
 
 func TestPanic(t *testing.T) {
 	defer Debug()
 
-	Panic(Try(a1))
+	testFunc()
+	t.Log("ok")
 }
 
 func TestTry(t *testing.T) {

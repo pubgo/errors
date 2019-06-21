@@ -40,21 +40,19 @@ func Handle(fn ...func(m *M)) {
 		return
 	}
 
-	m := _handle(err)
-
 	var _m = newM()
 	if len(fn) > 0 && !IsNil(fn[0]) {
 		fn[0](_m)
 	}
-	_m.Caller(8)
 
 	if len(_m.m) == 0 {
 		_m.m = nil
 	}
 
+	m := _handle(err)
 	panic(&Err{
 		sub:    m,
-		caller: If(_m.caller == "", funcCaller(4), _m.caller).(string),
+		caller: funcCaller(4),
 		err:    m.tErr(),
 		msg:    _m.msg,
 		tag:    m.tTag(_m.tag),
