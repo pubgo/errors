@@ -31,12 +31,19 @@ func TT(b bool, fn func(m *M)) {
 		_m.m = nil
 	}
 
+	var caller string
+	if _m.caller != "" {
+		caller = _m.caller
+	} else {
+		caller = funcCaller(callDepth)
+	}
+
 	if Cfg.Debug {
-		log.Println(_m.msg, funcCaller(callDepth))
+		log.Println(_m.msg, caller)
 	}
 
 	panic(&Err{
-		caller: If(_m.caller == "", funcCaller(callDepth), _m.caller).(string),
+		caller: caller,
 		msg:    _m.msg,
 		err:    errors.New(_m.msg),
 		tag:    _m.tag,
@@ -49,7 +56,6 @@ func WrapM(err error, fn func(m *M)) {
 		return
 	}
 
-	m := _handle(err)
 	_m := newM()
 	fn(_m)
 
@@ -57,21 +63,27 @@ func WrapM(err error, fn func(m *M)) {
 		_m.m = nil
 	}
 
-	if Cfg.Debug {
-		log.Println(_m.msg, funcCaller(callDepth))
+	var caller string
+	if _m.caller != "" {
+		caller = _m.caller
+	} else {
+		caller = funcCaller(callDepth)
 	}
 
+	if Cfg.Debug {
+		log.Println(_m.msg, caller)
+	}
+
+	m := _handle(err)
 	panic(&Err{
 		sub:    m,
-		caller: If(_m.caller == "", funcCaller(callDepth), _m.caller).(string),
+		caller: caller,
 		msg:    _m.msg,
 		err:    m.tErr(),
 		tag:    m.tTag(_m.tag),
 		m:      _m.m,
 	})
 }
-
-
 
 func Wrap(err error, msg string, args ...interface{}) {
 	if IsNil(err) {
@@ -95,7 +107,7 @@ func Panic(err error) {
 }
 
 func P(d ...interface{}) {
-	defer Handle()
+	defer Handle(func() {})
 
 	for _, i := range d {
 		if IsNil(i) {

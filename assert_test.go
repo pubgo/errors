@@ -37,7 +37,7 @@ func TestWrapM(t *testing.T) {
 }
 
 func testFunc() {
-	defer Handle()
+	defer Handle(func() {})
 
 	WrapM(errors.New("sbhbhbh"), func(m *M) {
 		m.Msg("test shhh").
@@ -47,10 +47,27 @@ func testFunc() {
 }
 
 func TestPanic(t *testing.T) {
+	Cfg.Debug = true
 	defer Debug()
 
 	testFunc()
 	t.Log("ok")
+}
+
+func init11() {
+	defer Handle(func() {})
+
+	//T(true, "sss")
+	TT(true, func(m *M) {
+		m.Msg("test tt")
+	})
+}
+
+func TestT2(t *testing.T) {
+	Cfg.Debug = true
+	defer Debug()
+
+	init11()
 }
 
 func TestTry(t *testing.T) {
@@ -72,9 +89,7 @@ func TestTask(t *testing.T) {
 func TestHandle(t *testing.T) {
 	defer Debug()
 
-	defer Handle(func(m *M) {
-		m.Msg("test panic %d", 33)
-	})
+	defer Handle(func() {})
 
 	Wrap(errors.New("hello error"), "sss")
 }

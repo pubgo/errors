@@ -11,13 +11,13 @@ var _kerr = &sync.Pool{
 }
 
 func kerrGet() *Err {
-	defer Handle()
+	defer Handle(func() {})
 
 	return _kerr.Get().(*Err)
 }
 
 func kerrPut(m *Err) {
-	defer Handle()
+	defer Handle(func() {})
 
 	_kerr.Put(m)
 }

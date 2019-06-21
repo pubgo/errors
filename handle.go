@@ -3,6 +3,10 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"log"
+	"reflect"
+	"runtime"
+	"strings"
 )
 
 func Debug() {
@@ -34,7 +38,7 @@ func _handle(err interface{}) *Err {
 	return m
 }
 
-func Handle(fn ...func(m *M)) {
+func Handle1(fn ...func(m *M)) {
 	err := recover()
 	if IsNil(err) {
 		return
@@ -49,13 +53,50 @@ func Handle(fn ...func(m *M)) {
 		_m.m = nil
 	}
 
+	var caller string
+	if _m.caller != "" {
+		caller = _m.caller
+	} else {
+		caller = funcCaller(5)
+	}
+
+	if Cfg.Debug {
+		log.Println(_m.msg, caller)
+	}
+
 	m := _handle(err)
 	panic(&Err{
 		sub:    m,
-		caller: If(_m.caller == "", funcCaller(5), _m.caller).(string),
+		caller: caller,
 		err:    m.tErr(),
 		msg:    _m.msg,
 		tag:    m.tTag(_m.tag),
 		m:      _m.m,
+	})
+}
+
+func Handle(fn func()) {
+	assertFn(fn)
+
+	err := recover()
+	if IsNil(err) {
+		return
+	}
+
+	_fn := reflect.ValueOf(fn).Pointer()
+	_e := runtime.FuncForPC(_fn)
+	file, line := _e.FileLine(_fn)
+	ma := strings.Split(_e.Name(), ".")
+	caller := strings.TrimPrefix(strings.TrimPrefix(fmt.Sprintf("%s:%d:%s", file, line, ma[len(ma)-1]), srcDir), modDir)
+
+	if Cfg.Debug {
+		log.Println("handle", caller)
+	}
+
+	m := _handle(err)
+	panic(&Err{
+		sub:    m,
+		caller: caller,
+		err:    m.tErr(),
 	})
 }

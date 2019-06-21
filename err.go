@@ -15,7 +15,7 @@ type _Err struct {
 }
 
 func (t *_Err) String() string {
-	defer Handle()
+	defer Handle(func() {})
 
 	_dt, err := json.Marshal(t)
 	Wrap(err, "json marshal error")
@@ -112,8 +112,8 @@ func (t *M) Tag(tag string) *M {
 	return t
 }
 
-func (t *M) funcLoad() *M {
-	t.caller = funcCaller(2)
+func (t *M) Load() *M {
+	t.caller = funcCaller(callDepth)
 	return t
 }
 
