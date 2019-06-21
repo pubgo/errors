@@ -1,2 +1,2 @@
 # errors
-error handle for go 
+error handle for go
