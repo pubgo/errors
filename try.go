@@ -44,17 +44,19 @@ func Try(fn interface{}, cfn ...interface{}) (err error) {
 		assertFn(cfn[0])
 		reflect.ValueOf(cfn[0]).Call(v)
 	}
-
 	return nil
 }
 
-func ErrHandle(err interface{}, fn func(err *Err)) {
+func ErrHandle(err interface{}, fn ...func(err *Err)) {
 	if IsNil(err) {
 		return
 	}
 
 	if _e, ok := err.(*Err); ok {
-		fn(_e)
+		if len(fn) > 0 {
+			assertFn(fn[0])
+			fn[0](_e)
+		}
 		return
 	}
 

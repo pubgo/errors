@@ -2,6 +2,7 @@ package assert
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -36,7 +37,7 @@ func TestWrapM(t *testing.T) {
 	})
 }
 
-func a1() {
+func a1() string {
 	defer Handle(func(m *M) {
 		m.Msg("test SWrap")
 	})
@@ -46,12 +47,16 @@ func a1() {
 			M("ss", 1).
 			M("input", 2)
 	})
+
+	return "test a1"
 }
 
 func TestName(t *testing.T) {
 	defer Debug()
 
-	ErrHandle(Try(a1), func(err *Err) {
+	ErrHandle(Try(a1, func(a string) {
+		fmt.Println(a)
+	}), func(err *Err) {
 		err.P()
 	})
 }

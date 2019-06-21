@@ -16,7 +16,7 @@ func If(b bool, t, f interface{}) interface{} {
 
 func FnCost(f func()) time.Duration {
 	t1 := time.Now()
-	Try(f)
+	ErrHandle(Try(f))
 	return time.Now().Sub(t1)
 }
 
