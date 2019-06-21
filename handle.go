@@ -46,6 +46,7 @@ func Handle(fn ...func(m *M)) {
 	if len(fn) > 0 && !IsNil(fn[0]) {
 		fn[0](_m)
 	}
+	_m.Caller(8)
 
 	if len(_m.m) == 0 {
 		_m.m = nil
@@ -53,7 +54,7 @@ func Handle(fn ...func(m *M)) {
 
 	panic(&Err{
 		sub:    m,
-		caller: funcCaller(4),
+		caller: If(_m.caller == "", funcCaller(4), _m.caller).(string),
 		err:    m.tErr(),
 		msg:    _m.msg,
 		tag:    m.tTag(_m.tag),

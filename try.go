@@ -65,5 +65,5 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		return
 	}
 
-	fmt.Printf("%#v", err)
+	fmt.Printf("%#v\n", err)
 }

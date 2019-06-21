@@ -2,8 +2,12 @@ package errors
 
 import (
 	"fmt"
+	"go/build"
+	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 )
 
 const callDepth = 2
@@ -15,12 +19,18 @@ func assertFn(fn interface{}) {
 	T(_v.Kind() != reflect.Func, "func type error(%s)", _v.String())
 }
 
+var goPath = build.Default.GOPATH
+var srcDir = fmt.Sprintf("%s%s", filepath.Join(goPath, "src"), string(os.PathSeparator))
+var modDir = fmt.Sprintf("%s%s", filepath.Join(goPath, "pkg", "mod"), string(os.PathSeparator))
+
 func funcCaller(callDepth int) string {
-	fn, _, line, ok := runtime.Caller(callDepth)
+	fn, file, line, ok := runtime.Caller(callDepth)
 	if !ok {
 		return "no func caller"
 	}
-	return fmt.Sprintf("%s:%d", runtime.FuncForPC(fn).Name(), line)
+
+	ma := strings.Split(runtime.FuncForPC(fn).Name(), ".")
+	return strings.TrimPrefix(strings.TrimPrefix(fmt.Sprintf("%s:%d:%s", file, line, ma[len(ma)-1]), srcDir), modDir)
 }
 
 func IsNil(p interface{}) (b bool) {

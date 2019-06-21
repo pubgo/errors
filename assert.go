@@ -95,8 +95,7 @@ func Panic(err error) {
 }
 
 func P(d ...interface{}) {
-	defer Handle(func(m *M) {
-	})
+	defer Handle()
 
 	for _, i := range d {
 		if IsNil(i) {

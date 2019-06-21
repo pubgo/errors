@@ -2,7 +2,6 @@ package errors
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 )
 
@@ -51,14 +50,10 @@ func a1() string {
 	return "test a1"
 }
 
-func TestName(t *testing.T) {
+func TestPanic(t *testing.T) {
 	defer Debug()
 
-	ErrHandle(Try(a1, func(a string) {
-		fmt.Println(a)
-	}), func(err *Err) {
-		err.P()
-	})
+	Panic(Try(a1))
 }
 
 func TestTry(t *testing.T) {
@@ -66,7 +61,7 @@ func TestTry(t *testing.T) {
 
 	Cfg.Debug = true
 
-	T(true, "sss")
+	Panic(Try(FnOf(T, true, "sss")))
 }
 
 func TestTask(t *testing.T) {
@@ -77,7 +72,9 @@ func TestTask(t *testing.T) {
 	}), "test wrap")
 }
 
-func test123() {
+func TestHandle(t *testing.T) {
+	defer Debug()
+
 	defer Handle(func(m *M) {
 		m.Msg("test panic %d", 33)
 	})
@@ -85,12 +82,22 @@ func test123() {
 	Wrap(errors.New("hello error"), "sss")
 }
 
-func TestExpect11(t *testing.T) {
+func TestErrHandle(t *testing.T) {
 	defer Debug()
 
-	Cfg.Debug = true
+	ErrHandle(Try(func() {
+		T(true, "test 12345")
+	}), func(err *Err) {
+		err.P()
+	})
 
-	test123()
+	ErrHandle(Try(func() {
+		T(true, "test 12345")
+	}))
+
+	ErrHandle("ttt")
+	ErrHandle(errors.New("eee"))
+	ErrHandle([]string{"dd"})
 }
 
 func TestIsNil(t *testing.T) {

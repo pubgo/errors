@@ -113,6 +113,9 @@ func (t *M) Tag(tag string) *M {
 }
 
 func (t *M) Caller(depth int) *M {
+	//for i:=0;i<10;i++{
+	//	fmt.Println(funcCaller(depth))
+	//}
 	t.caller = funcCaller(depth)
 	return t
 }
