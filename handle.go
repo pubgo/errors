@@ -52,7 +52,7 @@ func Handle(fn ...func(m *M)) {
 	m := _handle(err)
 	panic(&Err{
 		sub:    m,
-		caller: funcCaller(4),
+		caller: If(_m.caller == "", funcCaller(5), _m.caller).(string),
 		err:    m.tErr(),
 		msg:    _m.msg,
 		tag:    m.tTag(_m.tag),

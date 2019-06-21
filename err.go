@@ -112,16 +112,12 @@ func (t *M) Tag(tag string) *M {
 	return t
 }
 
-func (t *M) Caller1() *M {
+func (t *M) funcLoad() *M {
 	t.caller = funcCaller(2)
 	return t
 }
 
 func (t *M) Caller(depth int) *M {
-	//for i:=0;i<10;i++{
-	//	fmt.Println(funcCaller(depth))
-	//}
-
 	t.caller = funcCaller(depth)
 	return t
 }
