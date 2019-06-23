@@ -49,6 +49,7 @@ func testFunc() {
 }
 
 func TestPanic(t *testing.T) {
+	errors.Cfg.Debug=false
 	defer errors.Debug()
 
 	// 开始性能分析, 返回一个停止接口
@@ -56,9 +57,10 @@ func TestPanic(t *testing.T) {
 	// 在main()结束时停止性能分析
 	defer stopper.Stop()
 
-
-	testFunc()
-	t.Log("ok")
+	for i:=0;i<10000;i++{
+		errors.Try(testFunc)()
+		t.Log("ok")
+	}
 
 }
 
