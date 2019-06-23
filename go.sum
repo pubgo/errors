@@ -1,2 +1,4 @@
+github.com/pkg/profile v1.3.0 h1:OQIvuDgm00gWVWGTf4m4mCt6W1/0YqU7Ntg0mySWgaI=
+github.com/pkg/profile v1.3.0/go.mod h1:hJw3o1OdXxsrSjjVksARp5W95eeEaEfptyVZyv6JUPA=
 github.com/pubgo/assert v0.1.29 h1:ykoK59kEHWrfBzVoG+Ch5FWgG9YN8zHkzqr6FpGv2Ug=
 github.com/pubgo/assert v0.1.29/go.mod h1:64JRu47bgLPEHnIWKEMTPRs7bOVY6SUVCQO/LK1EqGE=

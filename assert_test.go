@@ -2,6 +2,7 @@ package errors_test
 
 import (
 	es "errors"
+	"github.com/pkg/profile"
 	"github.com/pubgo/errors"
 	"testing"
 )
@@ -50,8 +51,15 @@ func testFunc() {
 func TestPanic(t *testing.T) {
 	defer errors.Debug()
 
+	// 开始性能分析, 返回一个停止接口
+	stopper := profile.Start(profile.CPUProfile, profile.ProfilePath("."))
+	// 在main()结束时停止性能分析
+	defer stopper.Stop()
+
+
 	testFunc()
 	t.Log("ok")
+
 }
 
 func init11() {

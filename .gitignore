@@ -19,3 +19,4 @@ main
 .env
 kdata
 *.app
+*.pprof
