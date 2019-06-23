@@ -50,6 +50,11 @@ func WrapM(err interface{}, fn func(m *M)) {
 		return
 	}
 
+	m := _handle(err)
+	if IsZero(m) {
+		return
+	}
+
 	_m := newM()
 	fn(_m)
 
@@ -63,7 +68,6 @@ func WrapM(err interface{}, fn func(m *M)) {
 		log.Println(_m.msg, caller)
 	}
 
-	m := _handle(err)
 	panic(&Err{
 		sub:    m,
 		caller: caller,
@@ -106,7 +110,7 @@ func P(d ...interface{}) {
 		if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
 			Panic(err)
 		} else {
-			log.Println("P log",funcCaller(2),string(dt))
+			log.Println("P log", funcCaller(2), string(dt))
 			fmt.Print("\n\n")
 		}
 	}

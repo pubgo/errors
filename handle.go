@@ -28,6 +28,10 @@ func _handle(err interface{}) *Err {
 		err = e()
 	}
 
+	if IsZero(err) {
+		return nil
+	}
+
 	m := &Err{}
 	switch e := err.(type) {
 	case *Err:
@@ -67,13 +71,17 @@ func Handle(fn func()) {
 		return
 	}
 
+	m := _handle(err)
+	if IsZero(m) {
+		return
+	}
+
 	caller := getCallerFromFn(fn)
 
 	if Cfg.Debug {
 		log.Println("handle", caller)
 	}
 
-	m := _handle(err)
 	panic(&Err{
 		sub:    m,
 		caller: caller,

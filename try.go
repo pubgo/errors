@@ -73,6 +73,10 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		err = _e()
 	}
 
+	if IsZero(err) {
+		return
+	}
+
 	if _e, ok := err.(*Err); ok {
 		if len(fn) > 0 {
 			assertFn(fn[0])
