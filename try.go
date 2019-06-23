@@ -82,11 +82,11 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 	}
 
 	if _e, ok := err.(error); ok {
-		fmt.Println(_e.Error())
+		fmt.Println("error: ", _e.Error())
 		return
 	}
 
-	fmt.Printf("%#v\n", err)
+	fmt.Printf("other type: %#v\n", err)
 }
 
 func fibonacci() func() int {
