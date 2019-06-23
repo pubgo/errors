@@ -24,7 +24,7 @@ func _handle(err interface{}) *Err {
 		err = e()
 	}
 
-	if e, ok := err.(func(... interface{}) (err error)); ok {
+	if e, ok := err.(func(...interface{}) (err error)); ok {
 		err = e()
 	}
 
@@ -42,6 +42,11 @@ func _handle(err interface{}) *Err {
 		m.msg = fmt.Sprintf("handle type error %#v", e)
 		m.err = errors.New(m.msg)
 		m.tag = ErrTag.UnknownErr
+		_t := reflect.TypeOf(err)
+		m.m["type"] = _t.String()
+		m.m["kind"] = _t.Kind()
+		m.m["name"] = _t.Name()
+
 	}
 	return m
 }

@@ -32,6 +32,10 @@ func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
 					m.err = errors.New(m.msg)
 					m.caller = caller
 					m.tag = ErrTag.UnknownErr
+					_t := reflect.TypeOf(err)
+					m.m["type"] = _t.String()
+					m.m["kind"] = _t.Kind()
+					m.m["name"] = _t.Name()
 				}
 			}
 
