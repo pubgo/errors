@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func Try(fn interface{}, args ...interface{}) FnT {
+func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
 	return func(cfn ...interface{}) (err error) {
 		defer func() {
 			m := kerrGet()
@@ -59,7 +59,11 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		return
 	}
 
-	if _e, ok := err.(FnT); ok {
+	if _e, ok := err.(func() (err error)); ok {
+		err = _e()
+	}
+
+	if _e, ok := err.(func(...interface{}) (err error)); ok {
 		err = _e()
 	}
 

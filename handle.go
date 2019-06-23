@@ -24,7 +24,7 @@ func _handle(err interface{}) *Err {
 		err = e()
 	}
 
-	if e, ok := err.(FnT); ok {
+	if e, ok := err.(func(... interface{}) (err error)); ok {
 		err = e()
 	}
 
