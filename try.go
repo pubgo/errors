@@ -28,7 +28,7 @@ func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
 					m.msg = d
 					m.caller = caller
 				default:
-					m.msg = fmt.Sprintf("type error %#v", d)
+					m.msg = fmt.Sprintf("try type error %#v", d)
 					m.err = errors.New(m.msg)
 					m.caller = caller
 					m.tag = ErrTag.UnknownErr

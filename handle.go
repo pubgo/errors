@@ -39,7 +39,7 @@ func _handle(err interface{}) *Err {
 		m.err = errors.New(e)
 		m.msg = e
 	default:
-		m.msg = fmt.Sprintf("type error %#v", e)
+		m.msg = fmt.Sprintf("handle type error %#v", e)
 		m.err = errors.New(m.msg)
 		m.tag = ErrTag.UnknownErr
 	}
