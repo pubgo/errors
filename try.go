@@ -3,7 +3,9 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
+	"time"
 )
 
 func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
@@ -85,4 +87,34 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 	}
 
 	fmt.Printf("%#v\n", err)
+}
+
+func fibonacci() func() int {
+	a1, a2 := 0, 1
+	return func() int {
+		a1, a2 = a2, a1+a2
+		return a1
+	}
+}
+
+func Retry(num int, fn func()) {
+	defer Handle(func() {})
+	var err error
+	var sleepTime = 0
+
+	t := fibonacci()
+	for i := 0; i < num; i++ {
+		if err = Try(fn)(); err == nil {
+			break
+		}
+
+		if Cfg.Debug {
+			log.Printf("err: %s", err)
+		}
+
+		sleepTime = t()
+		time.Sleep(time.Second * time.Duration(sleepTime))
+	}
+
+	Wrap(err, "retry error,retry_num(%d)", num)
 }
