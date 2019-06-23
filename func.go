@@ -16,9 +16,11 @@ func If(b bool, t, f interface{}) interface{} {
 
 func FnCost(f func()) time.Duration {
 	t1 := time.Now()
-	ErrHandle(Try(f))
+	ErrHandle(Try(f)())
 	return time.Now().Sub(t1)
 }
+
+type FnT func(cfn ...interface{}) (err error)
 
 func FnOf(fn interface{}, args ...interface{}) func() []reflect.Value {
 	assertFn(fn)
@@ -28,7 +30,7 @@ func FnOf(fn interface{}, args ...interface{}) func() []reflect.Value {
 		var vs []reflect.Value
 		for i, p := range args {
 			var _v reflect.Value
-			if IsNil(p) {
+			if IsZero(p) {
 				if t.Type().IsVariadic() {
 					i = 0
 				}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"reflect"
 )
 
 func T(b bool, msg string, args ...interface{}) {
@@ -31,12 +30,7 @@ func TT(b bool, fn func(m *M)) {
 		_m.m = nil
 	}
 
-	var caller string
-	if _m.caller != "" {
-		caller = _m.caller
-	} else {
-		caller = funcCaller(callDepth)
-	}
+	caller := If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string)
 
 	if Cfg.Debug {
 		log.Println(_m.msg, caller)
@@ -51,8 +45,8 @@ func TT(b bool, fn func(m *M)) {
 	})
 }
 
-func WrapM(err error, fn func(m *M)) {
-	if IsNil(err) {
+func WrapM(err interface{}, fn func(m *M)) {
+	if IsZero(err) {
 		return
 	}
 
@@ -63,12 +57,7 @@ func WrapM(err error, fn func(m *M)) {
 		_m.m = nil
 	}
 
-	var caller string
-	if _m.caller != "" {
-		caller = _m.caller
-	} else {
-		caller = funcCaller(callDepth)
-	}
+	caller := If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string)
 
 	if Cfg.Debug {
 		log.Println(_m.msg, caller)
@@ -85,8 +74,8 @@ func WrapM(err error, fn func(m *M)) {
 	})
 }
 
-func Wrap(err error, msg string, args ...interface{}) {
-	if IsNil(err) {
+func Wrap(err interface{}, msg string, args ...interface{}) {
+	if IsZero(err) {
 		return
 	}
 
@@ -96,8 +85,8 @@ func Wrap(err error, msg string, args ...interface{}) {
 	})
 }
 
-func Panic(err error) {
-	if IsNil(err) {
+func Panic(err interface{}) {
+	if IsZero(err) {
 		return
 	}
 
@@ -110,14 +99,15 @@ func P(d ...interface{}) {
 	defer Handle(func() {})
 
 	for _, i := range d {
-		if IsNil(i) {
+		if IsZero(i) {
 			return
 		}
 
 		if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
 			Panic(err)
 		} else {
-			fmt.Println(reflect.ValueOf(i).String(), "->", string(dt))
+			log.Println("P log",funcCaller(2),string(dt))
+			fmt.Print("\n\n")
 		}
 	}
 }

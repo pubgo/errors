@@ -1,20 +1,21 @@
-package errors
+package errors_test
 
 import (
-	"errors"
+	es "errors"
+	"github.com/pubgo/errors"
 	"testing"
 )
 
 func TestT(t *testing.T) {
-	defer Debug()
+	defer errors.Debug()
 
-	T(true, "test t")
+	errors.T(true, "test t")
 }
 
 func TestTT(t *testing.T) {
-	defer Debug()
+	defer errors.Debug()
 
-	TT(true, func(m *M) {
+	errors.TT(true, func(m *errors.M) {
 		m.Msg("test tt").
 			Tag("tag").
 			M("k", "v")
@@ -23,23 +24,23 @@ func TestTT(t *testing.T) {
 }
 
 func TestWrap(t *testing.T) {
-	defer Debug()
+	defer errors.Debug()
 
-	Wrap(errors.New("test"), "test")
+	errors.Wrap(es.New("test"), "test")
 }
 
 func TestWrapM(t *testing.T) {
-	defer Debug()
+	defer errors.Debug()
 
-	WrapM(errors.New("dd"), func(m *M) {
+	errors.WrapM(es.New("dd"), func(m *errors.M) {
 		m.Msg("test")
 	})
 }
 
 func testFunc() {
-	defer Handle(func() {})
+	defer errors.Handle(func() {})
 
-	WrapM(errors.New("sbhbhbh"), func(m *M) {
+	errors.WrapM(es.New("sbhbhbh"), func(m *errors.M) {
 		m.Msg("test shhh").
 			M("ss", 1).
 			M("input", 2)
@@ -47,73 +48,68 @@ func testFunc() {
 }
 
 func TestPanic(t *testing.T) {
-	Cfg.Debug = true
-	defer Debug()
+	defer errors.Debug()
 
 	testFunc()
 	t.Log("ok")
 }
 
 func init11() {
-	defer Handle(func() {})
+	defer errors.Handle(func() {})
 
 	//T(true, "sss")
-	TT(true, func(m *M) {
+	errors.TT(true, func(m *errors.M) {
 		m.Msg("test tt")
 	})
 }
 
 func TestT2(t *testing.T) {
-	Cfg.Debug = true
-	defer Debug()
+	defer errors.Debug()
 
 	init11()
 }
 
 func TestTry(t *testing.T) {
-	defer Debug()
+	defer errors.Debug()
 
-	Cfg.Debug = true
-
-	Panic(Try(FnOf(T, true, "sss")))
+	errors.Panic(errors.Try(errors.T, true, "sss"))
 }
 
 func TestTask(t *testing.T) {
-	defer Debug()
+	defer errors.Debug()
 
-	Wrap(Try(func() {
-		Wrap(errors.New("dd"), "err ")
+	errors.Wrap(errors.Try(func() {
+		errors.Wrap(es.New("dd"), "err ")
 	}), "test wrap")
 }
 
 func TestHandle(t *testing.T) {
-	defer Debug()
+	defer errors.Debug()
 
-	defer Handle(func() {})
+	func() {
+		defer errors.Handle(func() {})
 
-	Wrap(errors.New("hello error"), "sss")
+		errors.Wrap(es.New("hello error"), "sss")
+	}()
+
 }
 
 func TestErrHandle(t *testing.T) {
-	defer Debug()
+	defer errors.Debug()
 
-	ErrHandle(Try(func() {
-		T(true, "test 12345")
-	}), func(err *Err) {
+	errors.ErrHandle(errors.Try(errors.T, true, "test 12345"), func(err *errors.Err) {
 		err.P()
 	})
 
-	ErrHandle(Try(func() {
-		T(true, "test 12345")
-	}))
+	errors.ErrHandle(errors.Try(errors.T, true, "test 12345"))
 
-	ErrHandle("ttt")
-	ErrHandle(errors.New("eee"))
-	ErrHandle([]string{"dd"})
+	errors.ErrHandle("ttt")
+	errors.ErrHandle(es.New("eee"))
+	errors.ErrHandle([]string{"dd"})
 }
 
-func TestIsNil(t *testing.T) {
-	defer Debug()
+func TestIsZero(t *testing.T) {
+	defer errors.Debug()
 
 	var ss = func() map[string]interface{} {
 		return make(map[string]interface{})
@@ -125,22 +121,21 @@ func TestIsNil(t *testing.T) {
 
 	var s = 1
 	var ss2 map[string]interface{}
-	t.Log(IsNil(1))
-	t.Log(IsNil(1.2))
-	t.Log(IsNil(nil))
-	t.Log(IsNil("ss"))
-	t.Log(IsNil(map[string]interface{}{}))
-	t.Log(IsNil(ss()))
-	t.Log(IsNil(ss1()))
-	t.Log(IsNil(&s))
-	t.Log(IsNil(ss2))
+	t.Log(errors.IsZero(1))
+	t.Log(errors.IsZero(1.2))
+	t.Log(errors.IsZero(nil))
+	t.Log(errors.IsZero("ss"))
+	t.Log(errors.IsZero(map[string]interface{}{}))
+	t.Log(errors.IsZero(ss()))
+	t.Log(errors.IsZero(ss1()))
+	t.Log(errors.IsZero(&s))
+	t.Log(errors.IsZero(ss2))
 }
 
 func TestResp(t *testing.T) {
-	defer Resp(func(err *Err) {
-		err.Tag()
+	defer errors.Resp(func(err *errors.Err) {
 		err.StackTrace()
 	})
 
-	T(true, "data handle")
+	errors.T(true, "data handle")
 }

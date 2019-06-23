@@ -6,50 +6,61 @@ import (
 	"reflect"
 )
 
-func Try(fn interface{}, cfn ...interface{}) (err error) {
-	defer func() {
-		m := kerrGet()
-		defer kerrPut(m)
+func Try(fn interface{}, args ...interface{}) FnT {
+	return func(cfn ...interface{}) (err error) {
+		defer func() {
+			m := kerrGet()
+			defer kerrPut(m)
 
-		if r := recover(); r != nil {
-			switch d := r.(type) {
-			case *Err:
-				m = d
-			case error:
-				m.err = d
-				m.msg = d.Error()
-				m.caller = funcCaller(callDepth)
-			case string:
-				m.err = errors.New(d)
-				m.msg = d
-				m.caller = funcCaller(callDepth)
-			default:
-				m.msg = fmt.Sprintf("type error %#v", d)
-				m.err = errors.New(m.msg)
-				m.caller = funcCaller(callDepth)
-				m.tag = ErrTag.UnknownErr
+			if r := recover(); !IsZero(r) {
+				caller := getCallerFromFn(fn)
+
+				switch d := r.(type) {
+				case *Err:
+					m = d
+					m.caller = caller
+				case error:
+					m.err = d
+					m.msg = d.Error()
+					m.caller = caller
+				case string:
+					m.err = errors.New(d)
+					m.msg = d
+					m.caller = caller
+				default:
+					m.msg = fmt.Sprintf("type error %#v", d)
+					m.err = errors.New(m.msg)
+					m.caller = caller
+					m.tag = ErrTag.UnknownErr
+				}
 			}
-		}
 
-		if m.err == nil {
-			err = nil
+			if m.err == nil {
+				err = nil
+				return
+			}
+			err = m.copy()
+		}()
+
+		_call := FnOf(fn, args...)
+		if len(cfn) == 0 {
+			_call()
 			return
 		}
-		err = m.copy()
-	}()
 
-	assertFn(fn)
-	v := FnOf(fn)()
-	if len(cfn) > 0 {
 		assertFn(cfn[0])
-		reflect.ValueOf(cfn[0]).Call(v)
+		reflect.ValueOf(cfn[0]).Call(_call())
+		return
 	}
-	return nil
 }
 
 func ErrHandle(err interface{}, fn ...func(err *Err)) {
-	if IsNil(err) {
+	if IsZero(err) {
 		return
+	}
+
+	if _e, ok := err.(FnT); ok {
+		err = _e()
 	}
 
 	if _e, ok := err.(*Err); ok {
