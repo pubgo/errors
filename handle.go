@@ -20,6 +20,10 @@ func Resp(fn func(err *Err)) {
 }
 
 func _handle(err interface{}) *Err {
+	if e, ok := err.(ErrT); ok {
+		err = e()
+	}
+
 	if e, ok := err.(FnT); ok {
 		err = e()
 	}

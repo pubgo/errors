@@ -21,6 +21,7 @@ func FnCost(f func()) time.Duration {
 }
 
 type FnT func(cfn ...interface{}) (err error)
+type ErrT func() (err error)
 
 func FnOf(fn interface{}, args ...interface{}) func() []reflect.Value {
 	assertFn(fn)
