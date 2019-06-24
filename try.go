@@ -109,6 +109,7 @@ func fibonacci() func() int {
 
 func Retry(num int, fn func()) {
 	defer Handle(func() {})
+
 	var err error
 	var sleepTime = 0
 
@@ -127,4 +128,29 @@ func Retry(num int, fn func()) {
 	}
 
 	Wrap(err, "retry error,retry_num(%d)", num)
+}
+
+func Ticker(fn func(dur time.Time) time.Duration) {
+	defer Handle(func() {})
+
+	var _dur = time.Duration(0)
+	for i := 0; ; i++ {
+		ErrHandle(Try(func() {
+			_dur = fn(time.Now())
+		}), func(err *Err) {
+			if Cfg.Debug {
+				err.P()
+			}
+		})
+
+		if _dur < 0 {
+			return
+		}
+
+		if _dur == 0 {
+			_dur = time.Second
+		}
+
+		time.Sleep(_dur)
+	}
 }

@@ -2,9 +2,11 @@ package errors_test
 
 import (
 	es "errors"
+	"fmt"
 	"github.com/pkg/profile"
 	"github.com/pubgo/errors"
 	"testing"
+	"time"
 )
 
 func TestT(t *testing.T) {
@@ -49,7 +51,7 @@ func testFunc() {
 }
 
 func TestPanic(t *testing.T) {
-	errors.Cfg.Debug=false
+	errors.Cfg.Debug = false
 	defer errors.Debug()
 
 	// 开始性能分析, 返回一个停止接口
@@ -57,7 +59,7 @@ func TestPanic(t *testing.T) {
 	// 在main()结束时停止性能分析
 	defer stopper.Stop()
 
-	for i:=0;i<10000;i++{
+	for i := 0; i < 10000; i++ {
 		errors.Try(testFunc)()
 		t.Log("ok")
 	}
@@ -148,4 +150,13 @@ func TestResp(t *testing.T) {
 	})
 
 	errors.T(true, "data handle")
+}
+
+func TestTicker(t *testing.T) {
+	defer errors.Handle(func() {})
+
+	errors.Ticker(func(dur time.Time) time.Duration {
+		fmt.Println(dur)
+		return time.Second
+	})
 }
