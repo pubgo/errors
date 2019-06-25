@@ -9,6 +9,7 @@ import (
 )
 
 func TestT(t *testing.T) {
+	errors.Init()
 	defer errors.Debug()
 
 	errors.T(true, "test t")
@@ -70,6 +71,7 @@ func init11() {
 }
 
 func TestT2(t *testing.T) {
+	errors.Init()
 	defer errors.Debug()
 
 	init11()

@@ -2,15 +2,14 @@ package errors
 
 import (
 	"fmt"
-	"github.com/json-iterator/go"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"go/build"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const callDepth = 2
 
@@ -26,4 +25,8 @@ func funcCaller(callDepth int) string {
 
 	ma := strings.Split(runtime.FuncForPC(fn).Name(), ".")
 	return strings.TrimPrefix(strings.TrimPrefix(fmt.Sprintf("%s:%d:%s", file, line, ma[len(ma)-1]), srcDir), modDir)
+}
+
+func Init() {
+	log.Logger = log.Output(zerolog.NewConsoleWriter()).With().Caller().Logger()
 }

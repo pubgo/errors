@@ -1,8 +1,8 @@
 package errors
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/rs/zerolog/log"
 	"reflect"
 )
@@ -106,9 +106,7 @@ func P(d ...interface{}) {
 		if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
 			Panic(err)
 		} else {
-			fmt.Println()
-			fmt.Println(string(dt))
-			fmt.Print("\n\n")
+			log.Info().Msg(string(dt))
 		}
 	}
 }
