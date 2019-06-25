@@ -66,15 +66,14 @@ func (t *Err) StackTrace() *_Err {
 }
 
 func (t *Err) tErr() (err error) {
-	err = t.err
-	t.err = nil
+	err, t.err = t.err, nil
 	return
 }
 
-func (t *Err) tTag(tag string) string {
-	tag = If(tag == "", t.tag, tag).(string)
+func (t *Err) tTag(tag string) (tg string) {
+	tg = If(tag == "", t.tag, tag).(string)
 	t.tag = ""
-	return tag
+	return
 }
 
 func (t *Err) P() {
@@ -104,11 +103,6 @@ func (t *M) Msg(format string, args ...interface{}) *M {
 
 func (t *M) Tag(tag string) *M {
 	t.tag = tag
-	return t
-}
-
-func (t *M) Load() *M {
-	t.caller = funcCaller(callDepth)
 	return t
 }
 
