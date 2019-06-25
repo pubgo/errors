@@ -30,12 +30,8 @@ func TT(b bool, fn func(m *M)) {
 		_m.m = nil
 	}
 
-	caller := If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string)
-
-	log.Debug().Caller().Msg(_m.msg)
-
 	panic(&Err{
-		caller: caller,
+		caller: If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string),
 		msg:    _m.msg,
 		err:    errors.New(_m.msg),
 		tag:    _m.tag,
@@ -60,13 +56,9 @@ func WrapM(err interface{}, fn func(m *M)) {
 		_m.m = nil
 	}
 
-	caller := If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string)
-
-	log.Debug().Caller().Msg(_m.msg)
-
 	panic(&Err{
 		sub:    m,
-		caller: caller,
+		caller: If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string),
 		msg:    _m.msg,
 		err:    m.tErr(),
 		tag:    m.tTag(_m.tag),

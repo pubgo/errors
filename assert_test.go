@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+func TestIf(t *testing.T) {
+	defer errors.Debug()
+
+	t.Log(errors.If(true, "", "").(string))
+}
+
 func TestT(t *testing.T) {
 	defer errors.Debug()
 

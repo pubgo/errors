@@ -6,6 +6,7 @@ import (
 )
 
 func If(b bool, t, f interface{}) interface{} {
+	T(reflect.TypeOf(t) != reflect.TypeOf(f), "type not match")
 
 	if b {
 		return t
