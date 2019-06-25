@@ -24,7 +24,7 @@ func TT(b bool, fn func(m *M)) {
 	}
 
 	_m := newM()
-	fn(_m)
+	fn(&_m)
 
 	if len(_m.m) == 0 {
 		_m.m = nil
@@ -56,7 +56,7 @@ func WrapM(err interface{}, fn func(m *M)) {
 	}
 
 	_m := newM()
-	fn(_m)
+	fn(&_m)
 
 	if len(_m.m) == 0 {
 		_m.m = nil

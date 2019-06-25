@@ -11,12 +11,11 @@ import (
 func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
 	return func(cfn ...interface{}) (err error) {
 		defer func() {
-			m := kerrGet()
-			defer kerrPut(m)
 
+			var m *Err
 			if r := recover(); !IsZero(r) {
+				m = new(Err)
 				caller := getCallerFromFn(fn)
-
 				switch d := r.(type) {
 				case *Err:
 					m = d
@@ -41,11 +40,11 @@ func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
 				}
 			}
 
-			if m.err == nil {
+			if IsZero(m) || m.err == nil {
 				err = nil
 				return
 			}
-			err = m.copy()
+			err = m
 		}()
 
 		_call := FnOf(fn, args...)

@@ -42,11 +42,6 @@ func (t *Err) _err() *_Err {
 	}
 }
 
-func (t *Err) copy() *Err {
-	err := *t
-	return &err
-}
-
 func (t *Err) Err() error {
 	return t.err
 }
@@ -86,8 +81,8 @@ func (t *Err) P() {
 	P(t.StackTrace())
 }
 
-func newM() *M {
-	return &M{m: make(map[string]interface{})}
+func newM() M {
+	return M{m: make(map[string]interface{})}
 }
 
 type M struct {
