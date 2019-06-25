@@ -3,7 +3,6 @@ package errors_test
 import (
 	es "errors"
 	"fmt"
-	"github.com/pkg/profile"
 	"github.com/pubgo/errors"
 	"testing"
 	"time"
@@ -53,11 +52,6 @@ func testFunc() {
 func TestPanic(t *testing.T) {
 	errors.Cfg.Debug = false
 	defer errors.Debug()
-
-	// 开始性能分析, 返回一个停止接口
-	stopper := profile.Start(profile.CPUProfile, profile.ProfilePath("."))
-	// 在main()结束时停止性能分析
-	defer stopper.Stop()
 
 	for i := 0; i < 10000; i++ {
 		errors.Try(testFunc)()

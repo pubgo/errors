@@ -3,7 +3,7 @@ package errors
 import (
 	"errors"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"reflect"
 	"time"
 )
@@ -115,12 +115,10 @@ func Retry(num int, fn func()) {
 	t := fibonacci()
 	for i := 0; i < num; i++ {
 		if err = Try(fn)(); err == nil {
-			break
+			return
 		}
 
-		if Cfg.Debug {
-			log.Printf("err: %s", err)
-		}
+		log.Warn().Caller().Err(err).Msg("retry error")
 
 		sleepTime = t()
 		time.Sleep(time.Second * time.Duration(sleepTime))
@@ -137,8 +135,10 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 		ErrHandle(Try(func() {
 			_dur = fn(time.Now())
 		}), func(err *Err) {
-			if Cfg.Debug {
-				err.P()
+			if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
+				log.Error().Caller().Err(err).Msg("json MarshalIndent error")
+			} else {
+				log.Warn().Caller().Msg(string(dt))
 			}
 		})
 
