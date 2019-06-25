@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func If(b bool, t, f interface{}) interface{} {
+func _If(b bool, t, f interface{}) interface{} {
 
 	if b {
 		return t
@@ -14,13 +14,7 @@ func If(b bool, t, f interface{}) interface{} {
 	return f
 }
 
-func FnCost(f func()) time.Duration {
-	t1 := time.Now()
-	ErrHandle(Try(f))
-	return time.Now().Sub(t1)
-}
-
-func FnOf(fn interface{}, args ...interface{}) func() []reflect.Value {
+func fnOf(fn interface{}, args ...interface{}) func() []reflect.Value {
 	assertFn(fn)
 
 	t := reflect.ValueOf(fn)

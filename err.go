@@ -71,7 +71,7 @@ func (t *Err) tErr() (err error) {
 }
 
 func (t *Err) tTag(tag string) (tg string) {
-	tg = If(tag == "", t.tag, tag).(string)
+	tg = _If(tag == "", t.tag, tag).(string)
 	t.tag = ""
 	return
 }
