@@ -27,6 +27,6 @@ func funcCaller(callDepth int) string {
 	return strings.TrimPrefix(strings.TrimPrefix(fmt.Sprintf("%s:%d:%s", file, line, ma[len(ma)-1]), srcDir), modDir)
 }
 
-func Init() {
+func init() {
 	log.Logger = log.Output(zerolog.NewConsoleWriter()).With().Caller().Logger()
 }
