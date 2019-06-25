@@ -153,3 +153,9 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 		time.Sleep(_dur)
 	}
 }
+
+func ErrLog(err interface{}) {
+	ErrHandle(err, func(err *Err) {
+		err.P()
+	})
+}
