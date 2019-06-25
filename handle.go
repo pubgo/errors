@@ -3,7 +3,7 @@ package errors
 import (
 	"errors"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"reflect"
 	"runtime"
 	"strings"
@@ -78,9 +78,7 @@ func Handle(fn func()) {
 
 	caller := getCallerFromFn(fn)
 
-	if Cfg.Debug {
-		log.Println("handle", caller)
-	}
+	log.Debug().Caller().Msg("handle")
 
 	panic(&Err{
 		sub:    m,

@@ -3,8 +3,8 @@ package errors
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
+	"reflect"
 )
 
 func T(b bool, msg string, args ...interface{}) {
@@ -32,9 +32,7 @@ func TT(b bool, fn func(m *M)) {
 
 	caller := If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string)
 
-	if Cfg.Debug {
-		log.Println(_m.msg, caller)
-	}
+	log.Debug().Caller().Msg(_m.msg)
 
 	panic(&Err{
 		caller: caller,
@@ -64,9 +62,7 @@ func WrapM(err interface{}, fn func(m *M)) {
 
 	caller := If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string)
 
-	if Cfg.Debug {
-		log.Println(_m.msg, caller)
-	}
+	log.Debug().Caller().Msg(_m.msg)
 
 	panic(&Err{
 		sub:    m,
@@ -110,8 +106,16 @@ func P(d ...interface{}) {
 		if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
 			Panic(err)
 		} else {
-			log.Println("P log", funcCaller(2), string(dt))
-			fmt.Print("\n\n")
+			log.Info().Msg(string(dt))
 		}
 	}
 }
+
+func assertFn(fn interface{}) {
+	T(IsZero(fn), "the func is nil")
+
+	_v := reflect.TypeOf(fn)
+	T(_v.Kind() != reflect.Func, "func type error(%s)", _v.String())
+}
+
+
