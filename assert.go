@@ -95,10 +95,12 @@ func P(d ...interface{}) {
 			return
 		}
 
-		if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
-			Panic(err)
-		} else {
-			log.Info().Msg(string(dt))
+		if l := log.Info(); l.Enabled() {
+			if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
+				Panic(err)
+			} else {
+				l.Msg(string(dt))
+			}
 		}
 	}
 }
@@ -109,5 +111,3 @@ func assertFn(fn interface{}) {
 	_v := reflect.TypeOf(fn)
 	T(_v.Kind() != reflect.Func, "func type error(%s)", _v.String())
 }
-
-
