@@ -12,10 +12,6 @@ func T(b bool, msg string, args ...interface{}) {
 		return
 	}
 
-	if _l := log.Debug(); _l.Enabled() {
-		_l.Msgf(msg, args...)
-	}
-
 	TT(b, func(m *M) {
 		m.Msg(msg, args...)
 		m.Caller(5)
@@ -32,10 +28,6 @@ func TT(b bool, fn func(m *M)) {
 
 	if len(_m.m) == 0 {
 		_m.m = nil
-	}
-
-	if _l := log.Debug(); _l.Enabled() {
-		_l.Msg(_m.msg)
 	}
 
 	panic(&Err{
@@ -64,10 +56,6 @@ func WrapM(err interface{}, fn func(m *M)) {
 		_m.m = nil
 	}
 
-	if _l := log.Debug(); _l.Enabled() {
-		_l.Msg(_m.msg)
-	}
-
 	panic(&Err{
 		sub:    m,
 		caller: If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string),
@@ -83,10 +71,6 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 		return
 	}
 
-	if _l := log.Debug(); _l.Enabled() {
-		_l.Msgf(msg, args...)
-	}
-
 	WrapM(err, func(m *M) {
 		m.Msg(msg, args...)
 		m.Caller(5)
@@ -96,10 +80,6 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 func Panic(err interface{}) {
 	if IsZero(err) {
 		return
-	}
-
-	if _l := log.Debug(); _l.Enabled() {
-		_l.Msg(err.(error).Error())
 	}
 
 	WrapM(err, func(m *M) {

@@ -112,16 +112,17 @@ func Retry(num int, fn func()) {
 
 	var err error
 	var sleepTime = 0
-
+	var all = 0
 	t := fibonacci()
 	for i := 0; i < num; i++ {
 		if err = Try(fn)(); err == nil {
 			return
 		}
 
-		log.Warn().Caller().Err(err).Msg("retry error")
-
 		sleepTime = t()
+
+		all += sleepTime
+		log.Warn().Caller().Int("cur_sleep_time", sleepTime).Int("all_sleep_time", all).Msg(err.Error())
 		time.Sleep(time.Second * time.Duration(sleepTime))
 	}
 

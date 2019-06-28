@@ -14,6 +14,12 @@ func Debug() {
 	})
 }
 
+func Log() {
+	ErrHandle(recover(), func(err *Err) {
+		err.Log()
+	})
+}
+
 func Resp(fn func(err *Err)) {
 	ErrHandle(recover(), fn)
 }

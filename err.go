@@ -2,7 +2,9 @@ package errors
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/rs/zerolog/log"
 )
 
 type _Err struct {
@@ -72,6 +74,35 @@ func (t *Err) tErr() (err error) {
 
 func (t *Err) P() {
 	P(t.StackTrace())
+}
+
+func (t *Err) Log() {
+	_t := t
+	for _t != nil {
+		_l := log.Error()
+
+		if _t.err != nil {
+			_l = _l.Err(_t.err)
+		} else {
+			_l = _l.Err(errors.New(_t.msg))
+			_t.msg = ""
+		}
+
+		if _t.tag != "" {
+			_l = _l.Str("err_tag", _t.tag)
+		}
+
+		if _t.caller != "" {
+			_l = _l.Str("err_caller", _t.caller)
+		}
+
+		if _t.m != nil {
+			_l = _l.Interface("err_m", _t.m)
+		}
+		_l.Msg(_t.msg)
+
+		_t = _t.sub
+	}
 }
 
 func newM() M {
