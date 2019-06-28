@@ -6,18 +6,40 @@ package errors_test
 
 import (
 	es "errors"
+	"fmt"
 	"github.com/pubgo/errors"
 	"testing"
+	"time"
 )
 
+func TestErrLog(t *testing.T) {
+	defer errors.Log()
+
+	errors.T(true, "test t")
+}
+
+func TestRetry(t *testing.T) {
+	defer errors.Log()
+
+	errors.Retry(5, func() {
+		errors.T(true, "test t")
+	})
+}
+
+func TestIf(t *testing.T) {
+	defer errors.Log()
+
+	t.Log(errors.If(true, "", "").(string))
+}
+
 func TestT(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	errors.T(true, "test t")
 }
 
 func TestTT(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	errors.TT(true, func(m *errors.M) {
 		m.Msg("test tt").
@@ -28,13 +50,13 @@ func TestTT(t *testing.T) {
 }
 
 func TestWrap(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	errors.Wrap(es.New("test"), "test")
 }
 
 func TestWrapM(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	errors.WrapM(es.New("dd"), func(m *errors.M) {
 		m.Msg("test")
@@ -52,10 +74,13 @@ func testFunc() {
 }
 
 func TestPanic(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
-	testFunc()
-	t.Log("ok")
+	for i := 0; i < 10000; i++ {
+		errors.Try(testFunc)()
+		t.Log("ok")
+	}
+
 }
 
 func init11() {
@@ -68,19 +93,19 @@ func init11() {
 }
 
 func TestT2(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	init11()
 }
 
 func TestTry(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	errors.Panic(errors.Try(errors.T, true, "sss"))
 }
 
 func TestTask(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	errors.Wrap(errors.Try(func() {
 		errors.Wrap(es.New("dd"), "err ")
@@ -88,7 +113,7 @@ func TestTask(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	func() {
 		defer errors.Handle(func() {})
@@ -99,7 +124,7 @@ func TestHandle(t *testing.T) {
 }
 
 func TestErrHandle(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	errors.ErrHandle(errors.Try(errors.T, true, "test 12345"), func(err *errors.Err) {
 		err.P()
@@ -113,7 +138,7 @@ func TestErrHandle(t *testing.T) {
 }
 
 func TestIsZero(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Log()
 
 	var ss = func() map[string]interface{} {
 		return make(map[string]interface{})
@@ -125,22 +150,31 @@ func TestIsZero(t *testing.T) {
 
 	var s = 1
 	var ss2 map[string]interface{}
-	t.Log(errors.IsZero(1))
-	t.Log(errors.IsZero(1.2))
-	t.Log(errors.IsZero(nil))
-	t.Log(errors.IsZero("ss"))
-	t.Log(errors.IsZero(map[string]interface{}{}))
-	t.Log(errors.IsZero(ss()))
-	t.Log(errors.IsZero(ss1()))
-	t.Log(errors.IsZero(&s))
-	t.Log(errors.IsZero(ss2))
+	errors.T(errors.IsZero(1), "")
+	errors.T(errors.IsZero(1.2), "")
+	errors.T(!errors.IsZero(nil), "")
+	errors.T(errors.IsZero("ss"), "")
+	errors.T(errors.IsZero(map[string]interface{}{}), "")
+	errors.T(errors.IsZero(ss()), "")
+	errors.T(!errors.IsZero(ss1()), "")
+	errors.T(errors.IsZero(&s), "")
+	errors.T(!errors.IsZero(ss2), "")
 }
 
 func TestResp(t *testing.T) {
 	defer errors.Resp(func(err *errors.Err) {
-		err.StackTrace()
+		err.Log()
 	})
 
 	errors.T(true, "data handle")
+}
+
+func TestTicker(t *testing.T) {
+	defer errors.Handle(func() {})
+
+	errors.Ticker(func(dur time.Time) time.Duration {
+		fmt.Println(dur)
+		return time.Second
+	})
 }
 ```
