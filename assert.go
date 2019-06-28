@@ -73,7 +73,7 @@ func WrapM(err interface{}, fn func(m *M)) {
 		caller: If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string),
 		msg:    _m.msg,
 		err:    m.tErr(),
-		tag:    m.tTag(_m.tag),
+		tag:    If(_m.tag == "", m.tag, _m.tag).(string),
 		m:      _m.m,
 	})
 }
@@ -84,7 +84,7 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 	}
 
 	if _l := log.Debug(); _l.Enabled() {
-		_l.Msgf(msg,args...)
+		_l.Msgf(msg, args...)
 	}
 
 	WrapM(err, func(m *M) {

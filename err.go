@@ -70,12 +70,6 @@ func (t *Err) tErr() (err error) {
 	return
 }
 
-func (t *Err) tTag(tag string) (tg string) {
-	tg = If(tag == "", t.tag, tag).(string)
-	t.tag = ""
-	return
-}
-
 func (t *Err) P() {
 	P(t.StackTrace())
 }
