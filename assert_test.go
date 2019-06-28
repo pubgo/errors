@@ -8,6 +8,22 @@ import (
 	"time"
 )
 
+func TestErrLog(t *testing.T) {
+	defer errors.Resp(func(err *errors.Err) {
+		errors.ErrLog(err)
+	})
+
+	errors.T(true, "test t")
+}
+
+func TestRetry(t *testing.T) {
+	defer errors.Debug()
+	
+	errors.Retry(3, func() {
+		errors.T(true, "test t")
+	})
+}
+
 func TestIf(t *testing.T) {
 	defer errors.Debug()
 
