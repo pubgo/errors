@@ -106,7 +106,7 @@ func (t *Err) Log() {
 }
 
 func newM() M {
-	return M{m: make(map[string]interface{})}
+	return M{}
 }
 
 type M struct {
@@ -116,22 +116,26 @@ type M struct {
 	m      map[string]interface{}
 }
 
-func (t *M) M(k string, v interface{}) *M {
+func (t M) M(k string, v interface{}) M {
+	if t.m == nil {
+		t.m = make(map[string]interface{})
+	}
+
 	t.m[k] = v
 	return t
 }
 
-func (t *M) Msg(format string, args ...interface{}) *M {
+func (t M) Msg(format string, args ...interface{}) M {
 	t.msg = fmt.Sprintf(format, args...)
 	return t
 }
 
-func (t *M) Tag(tag string) *M {
+func (t M) Tag(tag string) M {
 	t.tag = tag
 	return t
 }
 
-func (t *M) Caller(depth int) *M {
+func (t M) Caller(depth int) M {
 	t.caller = funcCaller(depth)
 	return t
 }

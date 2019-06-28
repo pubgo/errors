@@ -13,8 +13,7 @@ func T(b bool, msg string, args ...interface{}) {
 	}
 
 	TT(b, func(m *M) {
-		m.Msg(msg, args...)
-		m.Caller(5)
+		m.Msg(msg, args...).Caller(5)
 	})
 }
 
@@ -23,15 +22,18 @@ func TT(b bool, fn func(m *M)) {
 		return
 	}
 
-	_m := newM()
-	fn(&_m)
+	_m := &M{}
+	fn(_m)
 
-	if len(_m.m) == 0 {
-		_m.m = nil
+	_caller := ""
+	if _m.caller != "" {
+		_caller = _m.caller
+	} else {
+		_caller = funcCaller(callDepth)
 	}
 
 	panic(&Err{
-		caller: If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string),
+		caller: _caller,
 		msg:    _m.msg,
 		err:    errors.New(_m.msg),
 		tag:    _m.tag,
@@ -107,5 +109,5 @@ func assertFn(fn interface{}) {
 	T(IsZero(fn), "the func is nil")
 
 	_v := reflect.TypeOf(fn)
-	T(_v.Kind() != reflect.Func, "func type error(%s)", _v.String())
+	T(_v.Kind() != reflect.Func, "func type error(%s)", _v)
 }

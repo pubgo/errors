@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -24,9 +26,25 @@ func funcCaller(callDepth int) string {
 	}
 
 	ma := strings.Split(runtime.FuncForPC(fn).Name(), ".")
-	return strings.TrimPrefix(strings.TrimPrefix(fmt.Sprintf("%s:%d:%s", file, line, ma[len(ma)-1]), srcDir), modDir)
+
+	var buf = &bytes.Buffer{}
+	defer buf.Reset()
+	buf.WriteString(file)
+	buf.WriteString(":")
+	buf.WriteString(strconv.Itoa(line))
+	buf.WriteString(".")
+	buf.WriteString(ma[len(ma)-1])
+	return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
 }
 
 func init() {
 	log.Logger = log.Output(zerolog.NewConsoleWriter()).With().Caller().Logger()
+}
+
+func toInt(p string) int {
+	defer Handle(func() {})
+
+	r, err := strconv.Atoi(p)
+	Wrap(err, "can not convert %s to int", p)
+	return r
 }
