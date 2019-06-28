@@ -40,11 +40,3 @@ func funcCaller(callDepth int) string {
 func init() {
 	log.Logger = log.Output(zerolog.NewConsoleWriter()).With().Caller().Logger()
 }
-
-func toInt(p string) int {
-	defer Handle(func() {})
-
-	r, err := strconv.Atoi(p)
-	Wrap(err, "can not convert %s to int", p)
-	return r
-}

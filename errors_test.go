@@ -173,3 +173,11 @@ func TestTicker(t *testing.T) {
 		return time.Second
 	})
 }
+
+func TestRetryAt(t *testing.T) {
+	errors.RetryAt(time.Second*2, func(dur time.Duration) {
+		fmt.Println(dur.String())
+
+		errors.T(true,"test RetryAt")
+	})
+}

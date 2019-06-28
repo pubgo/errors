@@ -85,48 +85,53 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		return
 	}
 
-	if Cfg.Debug {
+	if l := log.Debug(); l.Enabled() {
 		if _e, ok := err.(error); ok {
-			fmt.Println("error: ", _e.Error())
+			l.Err(_e).Msg("err msg")
 			return
 		}
 
-		fmt.Printf("other type: %#v\n", err)
-		fmt.Printf("is zero: %#v\n", IsZero(err) || err == nil)
-		fmt.Printf("Kind: %#v\n", reflect.TypeOf(err).Kind())
-		fmt.Printf("String: %#v\n", reflect.TypeOf(err).String())
-	}
-
-}
-
-func fibonacci() func() int {
-	a1, a2 := 0, 1
-	return func() int {
-		a1, a2 = a2, a1+a2
-		return a1
+		l.Interface("other type", err).
+			Bool("is zero", IsZero(err) || err == nil).
+			Str("Kind", reflect.TypeOf(err).String()).
+			Msgf("%#v",err)
 	}
 }
 
 func Retry(num int, fn func()) {
 	defer Handle(func() {})
 
+	T(num < 1, "the num param must be more than 0")
+
 	var err error
-	var sleepTime = 0
 	var all = 0
-	t := fibonacci()
 	for i := 0; i < num; i++ {
 		if err = Try(fn)(); err == nil {
 			return
 		}
 
-		sleepTime = t()
-
-		all += sleepTime
-		log.Warn().Caller().Int("cur_sleep_time", sleepTime).Int("all_sleep_time", all).Msg(err.Error())
-		time.Sleep(time.Second * time.Duration(sleepTime))
+		all += i
+		log.Warn().Caller().Str("method", "retry").Int("cur_sleep_time", i).Int("all_sleep_time", all).Msg(err.Error())
+		time.Sleep(time.Second * time.Duration(i))
 	}
 
 	Wrap(err, "retry error,retry_num(%d)", num)
+}
+
+func RetryAt(t time.Duration, fn func(at time.Duration)) {
+	defer Handle(func() {})
+
+	var err error
+	var all = time.Duration(0)
+	for {
+		if err = Try(fn, all)(); err == nil {
+			return
+		}
+
+		all += t
+		log.Warn().Caller().Str("method", "retry_at").Float64("cur_sleep_time", t.Seconds()).Float64("all_sleep_time", all.Seconds()).Msg(err.Error())
+		time.Sleep(t)
+	}
 }
 
 func Ticker(fn func(dur time.Time) time.Duration) {

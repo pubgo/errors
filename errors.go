@@ -25,10 +25,8 @@ func TT(b bool, fn func(m *M)) {
 	_m := &M{}
 	fn(_m)
 
-	_caller := ""
-	if _m.caller != "" {
-		_caller = _m.caller
-	} else {
+	_caller := _m.caller
+	if _caller == "" {
 		_caller = funcCaller(callDepth)
 	}
 

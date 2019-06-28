@@ -2,7 +2,6 @@ package errors
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/rs/zerolog/log"
 )
@@ -83,9 +82,6 @@ func (t *Err) Log() {
 
 		if _t.err != nil {
 			_l = _l.Err(_t.err)
-		} else {
-			_l = _l.Err(errors.New(_t.msg))
-			_t.msg = ""
 		}
 
 		if _t.tag != "" {
@@ -99,6 +95,7 @@ func (t *Err) Log() {
 		if _t.m != nil {
 			_l = _l.Interface("err_m", _t.m)
 		}
+
 		_l.Msg(_t.msg)
 
 		_t = _t.sub
@@ -116,7 +113,7 @@ type M struct {
 	m      map[string]interface{}
 }
 
-func (t M) M(k string, v interface{}) M {
+func (t *M) M(k string, v interface{}) *M {
 	if t.m == nil {
 		t.m = make(map[string]interface{})
 	}
@@ -125,17 +122,17 @@ func (t M) M(k string, v interface{}) M {
 	return t
 }
 
-func (t M) Msg(format string, args ...interface{}) M {
+func (t *M) Msg(format string, args ...interface{}) *M {
 	t.msg = fmt.Sprintf(format, args...)
 	return t
 }
 
-func (t M) Tag(tag string) M {
+func (t *M) Tag(tag string) *M {
 	t.tag = tag
 	return t
 }
 
-func (t M) Caller(depth int) M {
+func (t *M) Caller(depth int) *M {
 	t.caller = funcCaller(depth)
 	return t
 }

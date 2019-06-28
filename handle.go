@@ -1,10 +1,12 @@
 package errors
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -16,6 +18,7 @@ func Debug() {
 
 func Log() {
 	ErrHandle(recover(), func(err *Err) {
+		err.P()
 		err.Log()
 	})
 }
@@ -65,7 +68,15 @@ func getCallerFromFn(fn interface{}) string {
 	_e := runtime.FuncForPC(_fn)
 	file, line := _e.FileLine(_fn)
 	ma := strings.Split(_e.Name(), ".")
-	return strings.TrimPrefix(strings.TrimPrefix(fmt.Sprintf("%s:%d:%s", file, line, ma[len(ma)-1]), srcDir), modDir)
+
+	var buf = &bytes.Buffer{}
+	defer buf.Reset()
+	buf.WriteString(file)
+	buf.WriteString(":")
+	buf.WriteString(strconv.Itoa(line))
+	buf.WriteString(".")
+	buf.WriteString(ma[len(ma)-1])
+	return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
 }
 
 func Handle(fn func()) {
