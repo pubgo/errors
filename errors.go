@@ -2,7 +2,7 @@ package errors
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"github.com/rs/zerolog/log"
 	"reflect"
 )
@@ -12,78 +12,68 @@ func T(b bool, msg string, args ...interface{}) {
 		return
 	}
 
-	TT(b, func(m *M) {
-		m.Msg(msg, args...).Caller(5)
-	})
-}
-
-func TT(b bool, fn func(m *M)) {
-	if !b {
-		return
-	}
-
-	_m := &M{}
-	fn(_m)
-
-	_caller := _m.caller
-	if _caller == "" {
-		_caller = funcCaller(callDepth)
-	}
-
+	_err := fmt.Errorf(msg, args...)
 	panic(&Err{
-		caller: _caller,
-		msg:    _m.msg,
-		err:    errors.New(_m.msg),
-		tag:    _m.tag,
-		m:      _m.m,
+		err:    _err,
+		msg:    _err.Error(),
+		caller: funcCaller(callDepth),
 	})
 }
 
-func WrapM(err interface{}, fn func(m *M)) {
-	if IsZero(err) {
-		return
+func TT(b bool, msg string, args ...interface{}) *Err {
+	if !b {
+		return &Err{}
 	}
 
+	_err := fmt.Errorf(msg, args...)
+	return &Err{
+		err:    _err,
+		msg:    _err.Error(),
+		caller: funcCaller(callDepth),
+	}
+}
+
+func WrapM(err interface{}, msg string, args ...interface{}) *Err {
+	m := _handle(err)
+	if IsZero(m) {
+		return &Err{}
+	}
+
+	return &Err{
+		sub:    m,
+		tag:    m.tTag(),
+		err:    m.tErr(),
+		msg:    fmt.Sprintf(msg, args...),
+		caller: funcCaller(callDepth),
+	}
+}
+
+func Wrap(err interface{}, msg string, args ...interface{}) {
 	m := _handle(err)
 	if IsZero(m) {
 		return
 	}
 
-	_m := newM()
-	fn(&_m)
-
-	if len(_m.m) == 0 {
-		_m.m = nil
-	}
-
 	panic(&Err{
 		sub:    m,
-		caller: If(_m.caller != "", _m.caller, funcCaller(callDepth)).(string),
-		msg:    _m.msg,
+		tag:    m.tTag(),
 		err:    m.tErr(),
-		tag:    If(_m.tag == "", m.tag, _m.tag).(string),
-		m:      _m.m,
-	})
-}
-
-func Wrap(err interface{}, msg string, args ...interface{}) {
-	if IsZero(err) {
-		return
-	}
-
-	WrapM(err, func(m *M) {
-		m.Msg(msg, args...)
-		m.Caller(5)
+		msg:    fmt.Sprintf(msg, args...),
+		caller: funcCaller(callDepth),
 	})
 }
 
 func Panic(err interface{}) {
-	if IsZero(err) {
+	m := _handle(err)
+	if IsZero(m) {
 		return
 	}
 
-	WrapM(err, func(m *M) {
-		m.Caller(5)
+	panic(&Err{
+		sub:    m,
+		tag:    m.tTag(),
+		err:    m.tErr(),
+		caller: funcCaller(callDepth),
 	})
 }
 
