@@ -129,13 +129,15 @@ func (t *Err) M(k string, v interface{}) *Err {
 		t.m = make(map[string]interface{})
 	}
 
+	if k == "tag" {
+		t.tag = v.(string)
+		return t
+	}
+
 	t.m[k] = v
 	return t
 }
 
-func (t *Err) Tag(tag string) *Err {
-	if !IsZero(t.err) {
-		t.tag = tag
-	}
-	return t
+func (t *Err) Tag() string {
+	return t.tag
 }
