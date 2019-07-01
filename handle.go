@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"reflect"
@@ -72,7 +71,7 @@ func getCallerFromFn(fn interface{}) string {
 	file, line := _e.FileLine(_fn)
 	ma := strings.Split(_e.Name(), ".")
 
-	var buf = &bytes.Buffer{}
+	var buf = &strings.Builder{}
 	defer buf.Reset()
 	buf.WriteString(file)
 	buf.WriteString(":")

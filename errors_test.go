@@ -39,8 +39,8 @@ func TestTT(t *testing.T) {
 	defer errors.Log()
 
 	errors.TT(true, "test tt").
-		Tag("tag").
 		M("k", "v").
+		M("tag", "tag").
 		Done()
 }
 

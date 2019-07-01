@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -27,7 +26,7 @@ func funcCaller(callDepth int) string {
 
 	ma := strings.Split(runtime.FuncForPC(fn).Name(), ".")
 
-	var buf = &bytes.Buffer{}
+	var buf = &strings.Builder{}
 	defer buf.Reset()
 	buf.WriteString(file)
 	buf.WriteString(":")
