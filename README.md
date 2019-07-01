@@ -8,6 +8,7 @@ import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
+	"github.com/rs/zerolog/log"
 	"testing"
 	"time"
 )
@@ -29,7 +30,7 @@ func TestRetry(t *testing.T) {
 func TestIf(t *testing.T) {
 	defer errors.Log()
 
-	t.Log(errors.If(true, "", "").(string))
+	log.Info().Msg(errors.If(true, "test true", "test false").(string))
 }
 
 func TestT(t *testing.T) {
@@ -41,55 +42,51 @@ func TestT(t *testing.T) {
 func TestTT(t *testing.T) {
 	defer errors.Log()
 
-	errors.TT(true, func(m *errors.M) {
-		m.Msg("test tt").
-			Tag("tag").
-			M("k", "v")
-
-	})
+	errors.TT(true, "test tt").
+		Tag("tag").
+		M("k", "v").
+		Done()
 }
 
 func TestWrap(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.Wrap(es.New("test"), "test")
 }
 
 func TestWrapM(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
-	errors.WrapM(es.New("dd"), func(m *errors.M) {
-		m.Msg("test")
-	})
+	errors.WrapM(es.New("dd"), "test").
+		Done()
+}
+
+func testFunc_1() {
+	defer errors.Handle(func() {})
+
+	errors.WrapM(es.New("sbhbhbh"), "test shhh").
+		M("ss", 1).
+		M("input", 2).
+		Done()
 }
 
 func testFunc() {
 	defer errors.Handle(func() {})
 
-	errors.WrapM(es.New("sbhbhbh"), func(m *errors.M) {
-		m.Msg("test shhh").
-			M("ss", 1).
-			M("input", 2)
-	})
+	errors.ErrLog(errors.Try(testFunc_1))
 }
 
 func TestPanic(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
-	for i := 0; i < 10000; i++ {
-		errors.Try(testFunc)()
-		t.Log("ok")
-	}
-
+	errors.ErrLog(errors.Try(testFunc)())
 }
 
 func init11() {
 	defer errors.Handle(func() {})
 
 	//T(true, "sss")
-	errors.TT(true, func(m *errors.M) {
-		m.Msg("test tt")
-	})
+	errors.T(true, "test tt")
 }
 
 func TestT2(t *testing.T) {
@@ -175,6 +172,14 @@ func TestTicker(t *testing.T) {
 	errors.Ticker(func(dur time.Time) time.Duration {
 		fmt.Println(dur)
 		return time.Second
+	})
+}
+
+func TestRetryAt(t *testing.T) {
+	errors.RetryAt(time.Second*2, func(dur time.Duration) {
+		fmt.Println(dur.String())
+
+		errors.T(true, "test RetryAt")
 	})
 }
 ```
