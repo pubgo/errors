@@ -18,7 +18,6 @@ func Debug() {
 
 func Log() {
 	ErrHandle(recover(), func(err *Err) {
-		err.P()
 		err.Log()
 	})
 }
@@ -28,6 +27,10 @@ func Resp(fn func(err *Err)) {
 }
 
 func _handle(err interface{}) *Err {
+	if IsZero(err) {
+		return nil
+	}
+
 	if e, ok := err.(func() (err error)); ok {
 		err = e()
 	}

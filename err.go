@@ -51,10 +51,6 @@ func (t *Err) Error() string {
 	return t.err.Error()
 }
 
-func (t *Err) Tag() string {
-	return t.tag
-}
-
 func (t *Err) StackTrace() *_Err {
 	err := t._err()
 	c := err
@@ -68,6 +64,11 @@ func (t *Err) StackTrace() *_Err {
 
 func (t *Err) tErr() (err error) {
 	err, t.err = t.err, nil
+	return
+}
+
+func (t *Err) tTag() (tag string) {
+	tag, t.tag = t.tag, ""
 	return
 }
 
@@ -102,37 +103,41 @@ func (t *Err) Log() {
 	}
 }
 
-func newM() M {
-	return M{}
+func (t *Err) Done() {
+	if IsZero(t.err) {
+		return
+	}
+	panic(t)
 }
 
-type M struct {
-	msg    string
-	tag    string
-	caller string
-	m      map[string]interface{}
+func (t *Err) _msg(msg string, args ...interface{}) *Err {
+	if !IsZero(t.err) {
+		t.msg = fmt.Sprintf(msg, args...)
+	}
+	return t
 }
 
-func (t *M) M(k string, v interface{}) *M {
+func (t *Err) Caller(depth int) *Err {
+	if !IsZero(t.err) {
+		t.caller = funcCaller(depth)
+	}
+	return t
+}
+
+func (t *Err) M(k string, v interface{}) *Err {
 	if t.m == nil {
 		t.m = make(map[string]interface{})
+	}
+
+	if k == "tag" {
+		t.tag = v.(string)
+		return t
 	}
 
 	t.m[k] = v
 	return t
 }
 
-func (t *M) Msg(format string, args ...interface{}) *M {
-	t.msg = fmt.Sprintf(format, args...)
-	return t
-}
-
-func (t *M) Tag(tag string) *M {
-	t.tag = tag
-	return t
-}
-
-func (t *M) Caller(depth int) *M {
-	t.caller = funcCaller(depth)
-	return t
+func (t *Err) Tag() string {
+	return t.tag
 }
