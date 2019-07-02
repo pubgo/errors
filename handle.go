@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+var errType = reflect.TypeOf(&Err{})
+
 func Debug() {
 	ErrHandle(recover(), func(err *Err) {
 		err.P()
@@ -63,7 +65,7 @@ func _handle(err reflect.Value) *Err {
 	default:
 		m.msg = fmt.Sprintf("handle type error %#v", e)
 		m.err = errors.New(m.msg)
-		m.tag = ErrTag.UnknownErr
+		m.tag = _ErrTags.UnknownTypeCode
 		_t := err.Type()
 		m.m["type"] = _t.String()
 		m.m["kind"] = _t.Kind()

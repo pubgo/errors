@@ -181,5 +181,5 @@ func TestRetryAt(t *testing.T) {
 }
 
 func TestErr(t *testing.T) {
-	fmt.Println(reflect.TypeOf(es.New("")))
+	fmt.Println(uint(1<<63))
 }

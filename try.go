@@ -28,7 +28,7 @@ func _Try(fn reflect.Value, args ...reflect.Value) func(value reflect.Value) (er
 				default:
 					m.msg = fmt.Sprintf("try type error %#v", d)
 					m.err = errors.New(m.msg)
-					m.tag = ErrTag.UnknownErr
+					m.tag = _ErrTags.UnknownTypeCode
 					_t := r.Type()
 					m.m["type"] = _t.String()
 					m.m["kind"] = _t.Kind()
@@ -156,7 +156,14 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 		}
 
 		all += t
-		log.Warn().Caller().Str("method", "retry_at").Float64("cur_sleep_time", t.Seconds()).Float64("all_sleep_time", all.Seconds()).Msg(err.Error())
+		T(all > Cfg.MaxRetryDur, "more than the max retry duration")
+		if _l := log.Debug(); _l.Enabled() {
+			_l.Caller().
+				Str("method", "retry_at").
+				Float64("cur_sleep_time", t.Seconds()).
+				Float64("all_sleep_time", all.Seconds()).
+				Msg(err.Error())
+		}
 		time.Sleep(t)
 	}
 }
@@ -164,14 +171,16 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 func Ticker(fn func(dur time.Time) time.Duration) {
 	defer Handle(func() {})
 
+	var _err error
 	var _dur = time.Duration(0)
-	for i := 0; ; i++ {
-		ErrHandle(Try(func() {
-			_dur = fn(time.Now())
-		}), func(err *Err) {
-			err.Log()
-		})
+	var _all = time.Duration(0)
+	var _fn = reflect.ValueOf(fn)
+	var _cfn = reflect.ValueOf(func(t time.Duration) {
+		_dur = t
+	})
 
+	for i := 0; ; i++ {
+		_err = _Try(_fn, reflect.ValueOf(time.Now()))(_cfn)
 		if _dur < 0 {
 			return
 		}
@@ -180,11 +189,20 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 			_dur = time.Second
 		}
 
+		_all += _dur
+		T(_all > Cfg.MaxRetryDur, "more than the max ticker time")
+		if _l := log.Debug(); _l.Enabled() {
+			_l.Caller().
+				Str("method", "ticker").
+				Int("retry_count", i).
+				Float64("retry_all_time", _all.Seconds()).
+				Msg(_err.Error())
+		}
 		time.Sleep(_dur)
 	}
 }
 
-func ErrLog(err interface{}) {
+func ErrLog(err error) {
 	ErrHandle(err, func(err *Err) {
 		err.P()
 	})
