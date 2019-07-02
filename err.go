@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/rs/zerolog/log"
+	"reflect"
 )
 
 type _Err struct {
@@ -104,21 +105,20 @@ func (t *Err) Log() {
 }
 
 func (t *Err) Done() {
-	if IsZero(t.err) {
-		return
+	if t.err != nil && !IsZero(reflect.ValueOf(t.err)) {
+		panic(t)
 	}
-	panic(t)
 }
 
 func (t *Err) _msg(msg string, args ...interface{}) *Err {
-	if !IsZero(t.err) {
+	if t.err != nil && !IsZero(reflect.ValueOf(t.err)) {
 		t.msg = fmt.Sprintf(msg, args...)
 	}
 	return t
 }
 
 func (t *Err) Caller(depth int) *Err {
-	if !IsZero(t.err) {
+	if t.err != nil && !IsZero(reflect.ValueOf(t.err)) {
 		t.caller = funcCaller(depth)
 	}
 	return t
@@ -126,7 +126,7 @@ func (t *Err) Caller(depth int) *Err {
 
 func (t *Err) M(k string, v interface{}) *Err {
 	if t.m == nil {
-		t.m = make(map[string]interface{})
+		t.m = make(map[string]interface{}, Cfg.MaxObj)
 	}
 
 	if k == "tag" {

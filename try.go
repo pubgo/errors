@@ -9,59 +9,87 @@ import (
 	"time"
 )
 
-func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
-	return func(cfn ...interface{}) (err error) {
+func _Try(fn reflect.Value, args ...reflect.Value) func(value reflect.Value) (err error) {
+	_call := FnOf(fn, args...)
+	return func(cfn reflect.Value) (err error) {
 		defer func() {
-
 			var m *Err
-			if r := recover(); !IsZero(r) {
+			r := reflect.ValueOf(recover())
+			if !IsZero(r) {
 				m = new(Err)
-				caller := getCallerFromFn(fn)
-				switch d := r.(type) {
+				switch d := r.Interface().(type) {
 				case *Err:
 					m = d
-					m.caller = caller
 				case error:
 					m.err = d
 					m.msg = d.Error()
-					m.caller = caller
 				case string:
 					m.err = errors.New(d)
 					m.msg = d
-					m.caller = caller
 				default:
 					m.msg = fmt.Sprintf("try type error %#v", d)
 					m.err = errors.New(m.msg)
-					m.caller = caller
 					m.tag = ErrTag.UnknownErr
-					_t := reflect.TypeOf(err)
+					_t := r.Type()
 					m.m["type"] = _t.String()
 					m.m["kind"] = _t.Kind()
 					m.m["name"] = _t.Name()
 				}
+				m.caller = getCallerFromFn(fn)
 			}
 
-			if IsZero(m) || m.err == nil {
+			if m == nil || IsZero(reflect.ValueOf(m)) || m.err == nil {
 				err = nil
 				return
 			}
 			err = m
 		}()
 
-		_call := FnOf(fn, args...)
-		if len(cfn) == 0 {
-			_call()
-			return
+		_c := _call()
+		if !IsZero(cfn) {
+			assertFn(cfn)
+			cfn.Call(_c)
 		}
-
-		assertFn(cfn[0])
-		reflect.ValueOf(cfn[0]).Call(_call())
 		return
 	}
 }
 
+func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
+	_fn := reflect.ValueOf(fn)
+	assertFn(_fn)
+
+	var variadicType reflect.Value
+	var isVariadic = _fn.Type().IsVariadic()
+	if isVariadic {
+		variadicType = reflect.New(_fn.Type().In(0)).Elem()
+	}
+
+	var _args = make([]reflect.Value, len(args))
+	for i, k := range args {
+		_v := reflect.ValueOf(k)
+		if k == nil || IsZero(_v) {
+			if isVariadic {
+				args[i] = variadicType
+			} else {
+				args[i] = reflect.New(_fn.Type().In(i)).Elem()
+			}
+		}
+		_args[i] = _v
+	}
+
+	return func(cfn ...interface{}) (err error) {
+
+		var _cfn reflect.Value
+		if len(cfn) > 0 && !IsZero(reflect.ValueOf(cfn[0])) {
+			_cfn = reflect.ValueOf(cfn[0])
+		}
+
+		return _Try(reflect.ValueOf(fn), _args...)(_cfn)
+	}
+}
+
 func ErrHandle(err interface{}, fn ...func(err *Err)) {
-	if IsZero(err) {
+	if err == nil || IsZero(reflect.ValueOf(err)) {
 		return
 	}
 
@@ -73,13 +101,13 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		err = _e()
 	}
 
-	if IsZero(err) {
+	if err == nil || IsZero(reflect.ValueOf(err)) {
 		return
 	}
 
 	if _e, ok := err.(*Err); ok {
 		if len(fn) > 0 {
-			assertFn(fn[0])
+			assertFn(reflect.ValueOf(fn[0]))
 			fn[0](_e)
 		}
 		return
@@ -92,9 +120,9 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		}
 
 		l.Interface("other type", err).
-			Bool("is zero", IsZero(err) || err == nil).
+			Bool("is zero", IsZero(reflect.ValueOf(err)) || err == nil).
 			Str("Kind", reflect.TypeOf(err).String()).
-			Msgf("%#v",err)
+			Msgf("%#v", err)
 	}
 }
 

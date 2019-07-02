@@ -3,6 +3,8 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"github.com/rs/zerolog/log"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -25,17 +27,23 @@ func Resp(fn func(err *Err)) {
 	ErrHandle(recover(), fn)
 }
 
-func _handle(err interface{}) *Err {
+func _handle(err reflect.Value) *Err {
 	if IsZero(err) {
 		return nil
 	}
 
-	if e, ok := err.(func() (err error)); ok {
-		err = e()
-	}
+	for {
+		if err.Kind() != reflect.Func {
+			break
+		}
 
-	if e, ok := err.(func(...interface{}) (err error)); ok {
-		err = e()
+		_ty := err.Type()
+
+		T(_ty.NumIn() == 0 || _ty.IsVariadic(), "func input params num error")
+		T(_ty.NumOut() != 1 || _ty.Out(0) != errType, "func output num and type error")
+
+		err = err.Call([]reflect.Value{})[0]
+		break
 	}
 
 	if IsZero(err) {
@@ -43,7 +51,7 @@ func _handle(err interface{}) *Err {
 	}
 
 	m := &Err{}
-	switch e := err.(type) {
+	switch e := err.Interface().(type) {
 	case *Err:
 		m = e
 	case error:
@@ -65,14 +73,15 @@ func _handle(err interface{}) *Err {
 	return m
 }
 
-func getCallerFromFn(fn interface{}) string {
-	_fn := reflect.ValueOf(fn).Pointer()
+func getCallerFromFn(fn reflect.Value) string {
+	_fn := fn.Pointer()
 	_e := runtime.FuncForPC(_fn)
 	file, line := _e.FileLine(_fn)
 	ma := strings.Split(_e.Name(), ".")
 
 	var buf = &strings.Builder{}
 	defer buf.Reset()
+
 	buf.WriteString(file)
 	buf.WriteString(":")
 	buf.WriteString(strconv.Itoa(line))
@@ -82,21 +91,24 @@ func getCallerFromFn(fn interface{}) string {
 }
 
 func Handle(fn func()) {
-	assertFn(fn)
+	if fn == nil {
+		log.Error().Msg("fn is nil")
+		os.Exit(-1)
+	}
 
 	err := recover()
-	if IsZero(err) {
+	if err == nil || IsZero(reflect.ValueOf(err)) {
 		return
 	}
 
-	m := _handle(err)
-	if IsZero(m) {
+	m := _handle(reflect.ValueOf(err))
+	if IsZero(reflect.ValueOf(m)) {
 		return
 	}
 
 	panic(&Err{
 		sub:    m,
-		caller: getCallerFromFn(fn),
+		caller: getCallerFromFn(reflect.ValueOf(fn)),
 		err:    m.tErr(),
 	})
 }

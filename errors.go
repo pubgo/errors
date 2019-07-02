@@ -34,8 +34,8 @@ func TT(b bool, msg string, args ...interface{}) *Err {
 }
 
 func WrapM(err interface{}, msg string, args ...interface{}) *Err {
-	m := _handle(err)
-	if IsZero(m) {
+	m := _handle(reflect.ValueOf(err))
+	if IsZero(reflect.ValueOf(m)) {
 		return &Err{}
 	}
 
@@ -49,8 +49,8 @@ func WrapM(err interface{}, msg string, args ...interface{}) *Err {
 }
 
 func Wrap(err interface{}, msg string, args ...interface{}) {
-	m := _handle(err)
-	if IsZero(m) {
+	m := _handle(reflect.ValueOf(err))
+	if IsZero(reflect.ValueOf(m)) {
 		return
 	}
 
@@ -64,8 +64,8 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 }
 
 func Panic(err interface{}) {
-	m := _handle(err)
-	if IsZero(m) {
+	m := _handle(reflect.ValueOf(err))
+	if IsZero(reflect.ValueOf(m)) {
 		return
 	}
 
@@ -81,7 +81,7 @@ func P(d ...interface{}) {
 	defer Handle(func() {})
 
 	for _, i := range d {
-		if IsZero(i) {
+		if IsZero(reflect.ValueOf(i)) {
 			return
 		}
 
@@ -93,9 +93,8 @@ func P(d ...interface{}) {
 	}
 }
 
-func assertFn(fn interface{}) {
+func assertFn(fn reflect.Value) {
 	T(IsZero(fn), "the func is nil")
 
-	_v := reflect.TypeOf(fn)
-	T(_v.Kind() != reflect.Func, "func type error(%s)", _v)
+	T(fn.Kind() != reflect.Func, "func type error(%s)", fn.Kind())
 }

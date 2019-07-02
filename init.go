@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"fmt"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"go/build"
@@ -14,9 +13,8 @@ import (
 
 const callDepth = 2
 
-var goPath = build.Default.GOPATH
-var srcDir = fmt.Sprintf("%s%s", filepath.Join(goPath, "src"), string(os.PathSeparator))
-var modDir = fmt.Sprintf("%s%s", filepath.Join(goPath, "pkg", "mod"), string(os.PathSeparator))
+var srcDir = filepath.Join(build.Default.GOPATH, "src") + string(os.PathSeparator)
+var modDir = filepath.Join(build.Default.GOPATH, "pkg", "mod") + string(os.PathSeparator)
 
 func funcCaller(callDepth int) string {
 	fn, file, line, ok := runtime.Caller(callDepth)
@@ -28,6 +26,7 @@ func funcCaller(callDepth int) string {
 
 	var buf = &strings.Builder{}
 	defer buf.Reset()
+
 	buf.WriteString(file)
 	buf.WriteString(":")
 	buf.WriteString(strconv.Itoa(line))

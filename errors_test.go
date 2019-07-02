@@ -5,18 +5,19 @@ import (
 	"fmt"
 	"github.com/pubgo/errors"
 	"github.com/rs/zerolog/log"
+	"reflect"
 	"testing"
 	"time"
 )
 
 func TestErrLog(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.T(true, "test t")
 }
 
 func TestRetry(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.Retry(5, func() {
 		errors.T(true, "test t")
@@ -143,15 +144,15 @@ func TestIsZero(t *testing.T) {
 
 	var s = 1
 	var ss2 map[string]interface{}
-	errors.T(errors.IsZero(1), "")
-	errors.T(errors.IsZero(1.2), "")
-	errors.T(!errors.IsZero(nil), "")
-	errors.T(errors.IsZero("ss"), "")
-	errors.T(errors.IsZero(map[string]interface{}{}), "")
-	errors.T(errors.IsZero(ss()), "")
-	errors.T(!errors.IsZero(ss1()), "")
-	errors.T(errors.IsZero(&s), "")
-	errors.T(!errors.IsZero(ss2), "")
+	errors.T(errors.IsZero(reflect.ValueOf(1)), "")
+	errors.T(errors.IsZero(reflect.ValueOf(1.2)), "")
+	errors.T(!errors.IsZero(reflect.ValueOf(nil)), "")
+	errors.T(errors.IsZero(reflect.ValueOf("ss")), "")
+	errors.T(errors.IsZero(reflect.ValueOf(map[string]interface{}{})), "")
+	errors.T(errors.IsZero(reflect.ValueOf(ss())), "")
+	errors.T(!errors.IsZero(reflect.ValueOf(ss1())), "")
+	errors.T(errors.IsZero(reflect.ValueOf(&s)), "")
+	errors.T(!errors.IsZero(reflect.ValueOf(ss2)), "")
 }
 
 func TestResp(t *testing.T) {
@@ -177,4 +178,8 @@ func TestRetryAt(t *testing.T) {
 
 		errors.T(true, "test RetryAt")
 	})
+}
+
+func TestErr(t *testing.T) {
+	fmt.Println(reflect.TypeOf(es.New("")))
 }

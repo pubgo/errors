@@ -6,12 +6,9 @@ import (
 )
 
 func If(b bool, t, f interface{}) interface{} {
-	T(reflect.TypeOf(t) != reflect.TypeOf(f), "type not match")
-
 	if b {
 		return t
 	}
-
 	return f
 }
 
@@ -21,41 +18,32 @@ func FnCost(f func()) time.Duration {
 	return time.Now().Sub(t1)
 }
 
-func FnOf(fn interface{}, args ...interface{}) func() []reflect.Value {
+func FnOf(fn reflect.Value, args ...reflect.Value) func() []reflect.Value {
 	assertFn(fn)
 
-	t := reflect.ValueOf(fn)
-	return func() []reflect.Value {
-		var vs []reflect.Value
-		for i, p := range args {
-			var _v reflect.Value
-			if IsZero(p) {
-				if t.Type().IsVariadic() {
-					i = 0
-				}
-				_v = reflect.New(t.Type().In(i)).Elem()
-			} else {
-				_v = reflect.ValueOf(p)
-			}
+	var variadicType reflect.Value
+	var isVariadic = fn.Type().IsVariadic()
+	if isVariadic {
+		variadicType = reflect.New(fn.Type().In(0)).Elem()
+	}
 
-			vs = append(vs, _v)
+	for i, p := range args {
+		if IsZero(p) && isVariadic {
+			args[i] = variadicType
 		}
-		return t.Call(vs)
+	}
+
+	return func() []reflect.Value {
+		return fn.Call(args)
 	}
 }
 
-func IsZero(v interface{}) bool {
-	if v == nil {
-		return true
-	}
-
-	val := reflect.ValueOf(v)
+func IsZero(val reflect.Value) bool {
 	if !val.IsValid() {
 		return true
 	}
 
-	kind := val.Kind()
-	switch kind {
+	switch val.Kind() {
 	case reflect.String:
 		return val.Len() == 0
 	case reflect.Bool:
