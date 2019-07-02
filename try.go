@@ -150,8 +150,11 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 
 	var err error
 	var all = time.Duration(0)
+	var _cfn = reflect.ValueOf(nil)
+	var _fn = reflect.ValueOf(fn)
+	
 	for {
-		if err = Try(fn, all)(); err == nil {
+		if err = _Try(_fn, reflect.ValueOf(all))(_cfn); err == nil {
 			return
 		}
 
@@ -160,8 +163,8 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 		if _l := log.Debug(); _l.Enabled() {
 			_l.Caller().
 				Str("method", "retry_at").
-				Float64("cur_sleep_time", t.Seconds()).
-				Float64("all_sleep_time", all.Seconds()).
+				Float64("cur_retry_time", t.Seconds()).
+				Float64("all_retry_time", all.Seconds()).
 				Msg(err.Error())
 		}
 		time.Sleep(t)
