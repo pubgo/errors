@@ -13,8 +13,12 @@ func If(b bool, t, f interface{}) interface{} {
 }
 
 func FnCost(f func()) time.Duration {
+	if f == nil {
+		return 0
+	}
+
 	t1 := time.Now()
-	ErrHandle(Try(f))
+	ErrHandle(_Try(reflect.ValueOf(f))(reflect.Value{}))
 	return time.Now().Sub(t1)
 }
 

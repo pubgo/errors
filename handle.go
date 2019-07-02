@@ -107,7 +107,7 @@ func Handle(fn func()) {
 		return
 	}
 
-	_m:=m.Interface().(*Err)
+	_m := m.Interface().(*Err)
 	panic(&Err{
 		sub:    _m,
 		tag:    _m.tTag(),

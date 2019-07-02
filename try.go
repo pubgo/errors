@@ -206,6 +206,7 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 				Float64("retry_all_time", _all.Seconds()).
 				Msg(_err.Error())
 		}
+
 		time.Sleep(_dur)
 	}
 }
