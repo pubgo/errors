@@ -64,7 +64,7 @@ func _handle(err reflect.Value) *Err {
 		m.msg = fmt.Sprintf("handle type error %#v", e)
 		m.err = errors.New(m.msg)
 		m.tag = ErrTag.UnknownErr
-		_t := reflect.TypeOf(err)
+		_t := err.Type()
 		m.m["type"] = _t.String()
 		m.m["kind"] = _t.Kind()
 		m.m["name"] = _t.Name()

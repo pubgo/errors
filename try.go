@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/rs/zerolog/log"
@@ -170,11 +169,7 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 		ErrHandle(Try(func() {
 			_dur = fn(time.Now())
 		}), func(err *Err) {
-			if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
-				log.Error().Caller().Err(err).Msg("json MarshalIndent error")
-			} else {
-				log.Warn().Caller().Msg(string(dt))
-			}
+			err.Log()
 		})
 
 		if _dur < 0 {
