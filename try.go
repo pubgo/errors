@@ -104,6 +104,10 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		return
 	}
 
+	if len(fn) == 0 {
+		return
+	}
+
 	if _e, ok := err.(*Err); ok {
 		if len(fn) > 0 {
 			assertFn(reflect.ValueOf(fn[0]))
@@ -132,8 +136,10 @@ func Retry(num int, fn func()) {
 
 	var err error
 	var all = 0
+	var _fn = reflect.ValueOf(fn)
+	var _cfn = reflect.Value{}
 	for i := 0; i < num; i++ {
-		if err = Try(fn)(); err == nil {
+		if err = _Try(_fn)(_cfn); err == nil {
 			return
 		}
 
@@ -150,9 +156,8 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 
 	var err error
 	var all = time.Duration(0)
-	var _cfn = reflect.ValueOf(nil)
+	var _cfn = reflect.Value{}
 	var _fn = reflect.ValueOf(fn)
-	
 	for {
 		if err = _Try(_fn, reflect.ValueOf(all))(_cfn); err == nil {
 			return
@@ -205,7 +210,7 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 	}
 }
 
-func ErrLog(err error) {
+func ErrLog(err interface{}) {
 	ErrHandle(err, func(err *Err) {
 		err.P()
 	})

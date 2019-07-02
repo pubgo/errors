@@ -180,6 +180,17 @@ func TestRetryAt(t *testing.T) {
 	})
 }
 
+type ss struct {
+}
+
+func (t *ss) sss() {
+	if t == nil {
+		fmt.Println("pp")
+	}
+
+}
+
 func TestErr(t *testing.T) {
-	fmt.Println(uint(1<<63))
+	var _ss *ss
+	_ss.sss()
 }

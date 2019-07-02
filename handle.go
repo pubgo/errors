@@ -29,9 +29,9 @@ func Resp(fn func(err *Err)) {
 	ErrHandle(recover(), fn)
 }
 
-func _handle(err reflect.Value) *Err {
+func _handle(err reflect.Value) reflect.Value {
 	if IsZero(err) {
-		return nil
+		return reflect.Value{}
 	}
 
 	for {
@@ -49,7 +49,7 @@ func _handle(err reflect.Value) *Err {
 	}
 
 	if IsZero(err) {
-		return nil
+		return reflect.Value{}
 	}
 
 	m := &Err{}
@@ -70,9 +70,8 @@ func _handle(err reflect.Value) *Err {
 		m.m["type"] = _t.String()
 		m.m["kind"] = _t.Kind()
 		m.m["name"] = _t.Name()
-
 	}
-	return m
+	return reflect.ValueOf(m)
 }
 
 func getCallerFromFn(fn reflect.Value) string {
@@ -104,13 +103,15 @@ func Handle(fn func()) {
 	}
 
 	m := _handle(reflect.ValueOf(err))
-	if IsZero(reflect.ValueOf(m)) {
+	if IsZero(m) {
 		return
 	}
 
+	_m:=m.Interface().(*Err)
 	panic(&Err{
-		sub:    m,
+		sub:    _m,
+		tag:    _m.tTag(),
+		err:    _m.tErr(),
 		caller: getCallerFromFn(reflect.ValueOf(fn)),
-		err:    m.tErr(),
 	})
 }

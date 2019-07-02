@@ -22,7 +22,7 @@ func T(b bool, msg string, args ...interface{}) {
 
 func TT(b bool, msg string, args ...interface{}) *Err {
 	if !b {
-		return &Err{}
+		return errGet()
 	}
 
 	_err := fmt.Errorf(msg, args...)
@@ -34,45 +34,61 @@ func TT(b bool, msg string, args ...interface{}) *Err {
 }
 
 func WrapM(err interface{}, msg string, args ...interface{}) *Err {
-	m := _handle(reflect.ValueOf(err))
-	if IsZero(reflect.ValueOf(m)) {
-		return &Err{}
+	if err==nil{
+		return errGet()
 	}
 
+	m := _handle(reflect.ValueOf(err))
+	if IsZero(m) {
+		return errGet()
+	}
+
+	_m:=m.Interface().(*Err)
 	return &Err{
-		sub:    m,
-		tag:    m.tTag(),
-		err:    m.tErr(),
+		sub:    _m,
+		tag:    _m.tTag(),
+		err:    _m.tErr(),
 		msg:    fmt.Sprintf(msg, args...),
 		caller: funcCaller(callDepth),
 	}
 }
 
 func Wrap(err interface{}, msg string, args ...interface{}) {
-	m := _handle(reflect.ValueOf(err))
-	if IsZero(reflect.ValueOf(m)) {
+	if err==nil{
 		return
 	}
 
+
+	m := _handle(reflect.ValueOf(err))
+	if IsZero(m) {
+		return
+	}
+
+	_m:=m.Interface().(*Err)
 	panic(&Err{
-		sub:    m,
-		tag:    m.tTag(),
-		err:    m.tErr(),
+		sub:    _m,
+		tag:    _m.tTag(),
+		err:    _m.tErr(),
 		msg:    fmt.Sprintf(msg, args...),
 		caller: funcCaller(callDepth),
 	})
 }
 
 func Panic(err interface{}) {
-	m := _handle(reflect.ValueOf(err))
-	if IsZero(reflect.ValueOf(m)) {
+	if err==nil{
 		return
 	}
 
+	m := _handle(reflect.ValueOf(err))
+	if IsZero(m) {
+		return
+	}
+
+	_m:=m.Interface().(*Err)
 	panic(&Err{
-		sub:    m,
-		tag:    m.tTag(),
-		err:    m.tErr(),
+		sub:    _m,
+		tag:    _m.tTag(),
+		err:    _m.tErr(),
 		caller: funcCaller(callDepth),
 	})
 }

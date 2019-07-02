@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"reflect"
+	"sync"
 )
 
 type _Err struct {
@@ -25,6 +26,16 @@ func (t *_Err) String() string {
 	return string(_dt)
 }
 
+var _errPool = sync.Pool{
+	New: func() interface{} {
+		return new(Err)
+	},
+}
+
+func errGet() *Err {
+	return _errPool.Get().(*Err)
+}
+
 type Err struct {
 	tag    uint16
 	m      map[string]interface{}
@@ -32,6 +43,20 @@ type Err struct {
 	msg    string
 	caller string
 	sub    *Err
+}
+
+func (t *Err) put() {
+	t.reset()
+	_errPool.Put(t)
+}
+
+func (t *Err) reset() {
+	t.tag = 0
+	t.m = nil
+	t.err = nil
+	t.msg = ""
+	t.caller = ""
+	t.sub = nil
 }
 
 func (t *Err) _err() *_Err {
@@ -77,7 +102,15 @@ func (t *Err) P() {
 	P(t.StackTrace())
 }
 
+func (t *Err) isNil() bool {
+	return t == nil || t.err == nil
+}
+
 func (t *Err) Log() {
+	if t.isNil() {
+		return
+	}
+
 	_t := t
 	for _t != nil {
 		_l := log.Error()
@@ -105,19 +138,27 @@ func (t *Err) Log() {
 }
 
 func (t *Err) Done() {
-	if t.err != nil && !IsZero(reflect.ValueOf(t.err)) {
-		panic(t)
+	if t.isNil() {
+		return
 	}
+
+	panic(t)
 }
 
 func (t *Err) _msg(msg string, args ...interface{}) *Err {
-	if t.err != nil && !IsZero(reflect.ValueOf(t.err)) {
-		t.msg = fmt.Sprintf(msg, args...)
+	if t.isNil() {
+		return t
 	}
+
+	t.msg = fmt.Sprintf(msg, args...)
 	return t
 }
 
 func (t *Err) Caller(depth int) *Err {
+	if t.isNil() {
+		return t
+	}
+
 	if t.err != nil && !IsZero(reflect.ValueOf(t.err)) {
 		t.caller = funcCaller(depth)
 	}
@@ -125,6 +166,10 @@ func (t *Err) Caller(depth int) *Err {
 }
 
 func (t *Err) M(k string, v interface{}) *Err {
+	if t.isNil() {
+		return t
+	}
+
 	if t.m == nil {
 		t.m = make(map[string]interface{}, Cfg.MaxObj)
 	}
