@@ -9,81 +9,87 @@ import (
 	"time"
 )
 
-func _Try(fn reflect.Value, args ...reflect.Value) func(value reflect.Value) (err error) {
-	_call := FnOf(fn, args...)
-	return func(cfn reflect.Value) (err error) {
-		defer func() {
-			var m *Err
-			r := reflect.ValueOf(recover())
-			if !IsZero(r) {
-				m = new(Err)
-				switch d := r.Interface().(type) {
-				case *Err:
-					m = d
-				case error:
-					m.err = d
-					m.msg = d.Error()
-				case string:
-					m.err = errors.New(d)
-					m.msg = d
-				default:
-					m.msg = fmt.Sprintf("try type error %#v", d)
-					m.err = errors.New(m.msg)
-					m.tag = _ErrTags.UnknownTypeCode
-					_t := r.Type()
-					m.m["type"] = _t.String()
-					m.m["kind"] = _t.Kind()
-					m.m["name"] = _t.Name()
-				}
+func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err error) {
+	assertFn(fn)
+
+	var variadicType reflect.Value
+	var isVariadic = fn.Type().IsVariadic()
+	if isVariadic {
+		variadicType = reflect.New(fn.Type().In(fn.Type().NumIn() - 1).Elem()).Elem()
+	}
+
+	return func(args ...reflect.Value) func(...reflect.Value) (err error) {
+
+		for i, k := range args {
+			if IsZero(k) {
+				args[i] = reflect.New(fn.Type().In(i)).Elem()
+				continue
 			}
 
-			if m == nil || IsZero(reflect.ValueOf(m)) || m.err == nil {
-				err = nil
-				return
+			if isVariadic {
+				args[i] = variadicType
 			}
-			err = m
-		}()
-
-		_c := _call()
-		if !IsZero(cfn) {
-			assertFn(cfn)
-			cfn.Call(_c)
 		}
-		return
+
+		return func(cfn ...reflect.Value) (err error) {
+			defer func() {
+				var m *Err
+				if r := recover(); r != nil || !IsZero(reflect.ValueOf(r)) {
+					m = new(Err)
+					switch d := r.(type) {
+					case *Err:
+						m = d
+					case error:
+						m.err = d
+						m.msg = d.Error()
+					case string:
+						m.err = errors.New(d)
+						m.msg = d
+					default:
+						m.msg = fmt.Sprintf("try type error %#v", d)
+						m.err = errors.New(m.msg)
+						m.tag = ErrTags.UnknownTypeCode
+					}
+				}
+
+				if m == nil || IsZero(reflect.ValueOf(m)) || m.err == nil {
+					err = nil
+					return
+				}
+				err = m
+			}()
+
+			_c := fn.Call(args)
+			if len(cfn) > 0 && !IsZero(cfn[0]) {
+				assertFn(cfn[0])
+				cfn[0].Call(_c)
+			}
+			return
+		}
 	}
 }
 
-func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
-	_fn := reflect.ValueOf(fn)
-	assertFn(_fn)
+func Try(fn interface{}) func(args ...interface{}) func(...interface{}) (err error) {
+	_tr := TryRaw(reflect.ValueOf(fn))
 
-	var variadicType reflect.Value
-	var isVariadic = _fn.Type().IsVariadic()
-	if isVariadic {
-		variadicType = reflect.New(_fn.Type().In(_fn.Type().NumIn() - 1).Elem()).Elem()
-	}
+	return func(args ...interface{}) func(...interface{}) (err error) {
+		var _args = valueGet()
+		defer valuePut(_args)
 
-	var _args = make([]reflect.Value, len(args))
-	for i, k := range args {
-		_v := reflect.ValueOf(k)
-		if k == nil || IsZero(_v) {
-			if isVariadic {
-				args[i] = variadicType
-			} else {
-				args[i] = reflect.New(_fn.Type().In(i)).Elem()
+		for _, k := range args {
+			_args = append(_args, reflect.ValueOf(k))
+		}
+		_tr1 := _tr(_args...)
+
+		return func(cfn ...interface{}) (err error) {
+			var _cfn = valueGet()
+			defer valuePut(_cfn)
+
+			for _, k := range cfn {
+				_cfn = append(_cfn, reflect.ValueOf(k))
 			}
+			return _tr1(_cfn...)
 		}
-		_args[i] = _v
-	}
-
-	return func(cfn ...interface{}) (err error) {
-
-		var _cfn reflect.Value
-		if len(cfn) > 0 && !IsZero(reflect.ValueOf(cfn[0])) {
-			_cfn = reflect.ValueOf(cfn[0])
-		}
-
-		return _Try(reflect.ValueOf(fn), _args...)(_cfn)
 	}
 }
 
@@ -129,17 +135,18 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 	}
 }
 
-func Retry(num int, fn func()) {
-	defer Handle()()
+func Retry(num int, fn func()) (err error) {
+	defer Resp(func(_err *Err) {
+		err = _err
+	})
 
 	T(num < 1, "the num param must be more than 0")
 
-	var err error
 	var all = 0
-	var _fn = reflect.ValueOf(fn)
+	var _fn = TryRaw(reflect.ValueOf(fn))
 	var _cfn = reflect.Value{}
 	for i := 0; i < num; i++ {
-		if err = _Try(_fn)(_cfn); err == nil {
+		if err = _fn()(_cfn); err == nil {
 			return
 		}
 
@@ -154,6 +161,7 @@ func Retry(num int, fn func()) {
 	}
 
 	Wrap(err, "retry error,retry_num: "+strconv.Itoa(num))
+	return
 }
 
 func RetryAt(t time.Duration, fn func(at time.Duration)) {
@@ -162,9 +170,9 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 	var err error
 	var all = time.Duration(0)
 	var _cfn = reflect.Value{}
-	var _fn = reflect.ValueOf(fn)
+	var _fn = TryRaw(reflect.ValueOf(fn))
 	for {
-		if err = _Try(_fn, reflect.ValueOf(all))(_cfn); err == nil {
+		if err = _fn(reflect.ValueOf(all))(_cfn); err == nil || IsZero(_cfn) {
 			return
 		}
 
@@ -188,13 +196,13 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 	var _err error
 	var _dur = time.Duration(0)
 	var _all = time.Duration(0)
-	var _fn = reflect.ValueOf(fn)
+	var _fn = TryRaw(reflect.ValueOf(fn))
 	var _cfn = reflect.ValueOf(func(t time.Duration) {
 		_dur = t
 	})
 
 	for i := 0; ; i++ {
-		_err = _Try(_fn, reflect.ValueOf(time.Now()))(_cfn)
+		_err = _fn(reflect.ValueOf(time.Now()))(_cfn)
 		if _dur < 0 {
 			return
 		}

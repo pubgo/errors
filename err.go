@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"reflect"
+	"strings"
 	"sync"
 )
 
@@ -20,20 +21,27 @@ type _Err struct {
 func (t *_Err) String() string {
 	defer Handle()()
 
-	_dt, err := json.Marshal(t)
-	Wrap(err, "json marshal error")
+	buf := &strings.Builder{}
+	defer buf.Reset()
 
-	return string(_dt)
+	_err := json.NewEncoder(buf).Encode(t)
+	Wrap(_err, "json marshal error")
+	return buf.String()
 }
 
-var _errPool = sync.Pool{
+var _valuePool = sync.Pool{
 	New: func() interface{} {
-		return new(Err)
+		return []reflect.Value{}
 	},
 }
 
-func errGet() *Err {
-	return _errPool.Get().(*Err)
+func valueGet() []reflect.Value {
+	return _valuePool.Get().([]reflect.Value)
+}
+
+func valuePut(v []reflect.Value) {
+	v = v[:0]
+	_valuePool.Put(v)
 }
 
 type Err struct {
@@ -43,11 +51,6 @@ type Err struct {
 	msg    string
 	caller string
 	sub    *Err
-}
-
-func (t *Err) put() {
-	t.reset()
-	_errPool.Put(t)
 }
 
 func (t *Err) reset() {

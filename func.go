@@ -12,34 +12,11 @@ func If(b bool, t, f interface{}) interface{} {
 	return f
 }
 
-func FnCost(f func()) time.Duration {
-	if f == nil {
-		return 0
+func Default(t, f interface{}) interface{} {
+	if IsZero(reflect.ValueOf(t)) {
+		return f
 	}
-
-	t1 := time.Now()
-	ErrHandle(_Try(reflect.ValueOf(f))(reflect.Value{}))
-	return time.Now().Sub(t1)
-}
-
-func FnOf(fn reflect.Value, args ...reflect.Value) func() []reflect.Value {
-	assertFn(fn)
-
-	var variadicType reflect.Value
-	var isVariadic = fn.Type().IsVariadic()
-	if isVariadic {
-		variadicType = reflect.New(fn.Type().In(0)).Elem()
-	}
-
-	for i, p := range args {
-		if IsZero(p) && isVariadic {
-			args[i] = variadicType
-		}
-	}
-
-	return func() []reflect.Value {
-		return fn.Call(args)
-	}
+	return t
 }
 
 func IsZero(val reflect.Value) bool {
@@ -82,4 +59,20 @@ func IsZero(val reflect.Value) bool {
 	default:
 		return reflect.DeepEqual(val.Interface(), reflect.Zero(val.Type()).Interface())
 	}
+}
+
+func FnOf(fn interface{}) (reflect.Value, bool, reflect.Value) {
+	defer Handle()()
+
+	_fn := reflect.ValueOf(fn)
+
+	assertFn(_fn)
+
+	var variadicType reflect.Value
+	var isVariadic = _fn.Type().IsVariadic()
+	if isVariadic {
+		variadicType = reflect.New(_fn.Type().In(_fn.Type().NumIn() - 1).Elem()).Elem()
+	}
+
+	return _fn, isVariadic, variadicType
 }

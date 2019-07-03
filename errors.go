@@ -97,19 +97,17 @@ func P(d ...interface{}) {
 
 	for _, i := range d {
 		if IsZero(reflect.ValueOf(i)) {
-			return
+			continue
 		}
 
-		if dt, err := json.MarshalIndent(i, "", "\t"); err != nil {
-			Panic(err)
-		} else {
-			log.Info().Msg(string(dt))
-		}
+		dt, err := json.MarshalIndent(i, "", "\t")
+		Wrap(err, "P json MarshalIndent error")
+		log.Info().Msg(string(dt))
 	}
 }
 
 func assertFn(fn reflect.Value) {
 	T(IsZero(fn), "the func is nil")
 
-	T(fn.Kind() != reflect.Func, "func type error: "+fn.Kind().String(), )
+	T(fn.Kind() != reflect.Func, "func type error: "+fn.Kind().String())
 }

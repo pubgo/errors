@@ -14,7 +14,7 @@ var Cfg = struct {
 	MaxRetryDur: time.Hour * 24,
 }
 
-var _ErrTags = struct {
+var ErrTags = struct {
 	UnknownTypeCode uint16
 }{
 	1000,
@@ -41,5 +41,5 @@ func GetErrTag(code uint16) string {
 }
 
 func init() {
-	ErrCodeRegistry(_ErrTags.UnknownTypeCode, "errors_unknown_type")
+	ErrCodeRegistry(ErrTags.UnknownTypeCode, "errors_unknown_type")
 }

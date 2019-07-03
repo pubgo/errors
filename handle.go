@@ -9,8 +9,6 @@ import (
 	"strings"
 )
 
-var errType = reflect.TypeOf(&Err{})
-
 func Debug() {
 	ErrHandle(recover(), func(err *Err) {
 		err.P()
@@ -32,18 +30,17 @@ func _handle(err reflect.Value) reflect.Value {
 		return reflect.Value{}
 	}
 
-	for {
-		if err.Kind() != reflect.Func {
-			break
-		}
-
+	if err.Kind() == reflect.Func {
 		_ty := err.Type()
 
 		T(_ty.NumIn() == 0 && _ty.IsVariadic(), "func input params num error")
-		T(_ty.NumOut() != 1, "func output num: "+strconv.Itoa(_ty.NumOut()))
+		T(_ty.NumOut() != 1, "func output num error, num: "+strconv.Itoa(_ty.NumOut()))
 
-		err = err.Call([]reflect.Value{})[0]
-		break
+		_v := valueGet()
+		defer valuePut(_v)
+		
+		err = err.Call(_v)[0]
+		return reflect.Value{}
 	}
 
 	if IsZero(err) {
@@ -63,11 +60,7 @@ func _handle(err reflect.Value) reflect.Value {
 	default:
 		m.msg = fmt.Sprintf("handle type error %#v", e)
 		m.err = errors.New(m.msg)
-		m.tag = _ErrTags.UnknownTypeCode
-		_t := err.Type()
-		m.m["type"] = _t.String()
-		m.m["kind"] = _t.Kind()
-		m.m["name"] = _t.Name()
+		m.tag = ErrTags.UnknownTypeCode
 	}
 	return reflect.ValueOf(m)
 }

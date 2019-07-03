@@ -18,9 +18,9 @@ func TestT(t *testing.T) {
 func TestRetry(t *testing.T) {
 	defer errors.Debug()
 
-	errors.Retry(3, func() {
+	errors.Wrap(errors.Retry(3, func() {
 		errors.T(true, "test t")
-	})
+	}), "test Retry error")
 }
 
 func TestIf(t *testing.T) {
@@ -69,13 +69,13 @@ func testFunc_1() {
 func testFunc() {
 	defer errors.Handle()()
 
-	errors.Wrap(errors.Try(testFunc_1), "errors.Wrap")
+	errors.Wrap(errors.Try(testFunc_1)()(), "errors.Wrap")
 }
 
 func TestErrLog(t *testing.T) {
 	defer errors.Debug()
 
-	errors.Wrap(errors.Try(testFunc), "errors.Wrap11111")
+	errors.Wrap(errors.Try(testFunc)()(), "errors.Wrap11111")
 }
 
 func init11() {
@@ -94,7 +94,7 @@ func TestT2(t *testing.T) {
 func TestTry(t *testing.T) {
 	defer errors.Log()
 
-	errors.Panic(errors.Try(errors.T, true, "sss"))
+	errors.Panic(errors.Try(errors.T)(true, "sss"))
 }
 
 func TestTask(t *testing.T) {
@@ -119,11 +119,11 @@ func TestHandle(t *testing.T) {
 func TestErrHandle(t *testing.T) {
 	defer errors.Log()
 
-	errors.ErrHandle(errors.Try(errors.T, true, "test 12345"), func(err *errors.Err) {
+	errors.ErrHandle(errors.Try(errors.T)(true, "test 12345"), func(err *errors.Err) {
 		err.P()
 	})
 
-	errors.ErrHandle(errors.Try(errors.T, true, "test 12345"))
+	errors.ErrHandle(errors.Try(errors.T)(true, "test 12345"))
 
 	errors.ErrHandle("ttt")
 	errors.ErrHandle(es.New("eee"))
@@ -179,7 +179,7 @@ func TestRetryAt(t *testing.T) {
 	})
 }
 
-func _2nit(a string,m ... int) {
+func _2nit(a string, m ...int) {
 
 }
 func TestNam1e(t *testing.T) {
@@ -187,7 +187,7 @@ func TestNam1e(t *testing.T) {
 	fmt.Println(_fn.Type().IsVariadic())
 	fmt.Println(_fn.Type().NumIn())
 
-	fmt.Println(_fn.Type().In(_fn.Type().NumIn()-1).Elem())
+	fmt.Println(_fn.Type().In(_fn.Type().NumIn() - 1).Elem())
 
 	//var variadicType reflect.Value
 	//var isVariadic = _fn.Type().IsVariadic()
