@@ -123,7 +123,7 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		}
 
 		l.Interface("other type", err).
-			Bool("is zero", IsZero(reflect.ValueOf(err)) || err == nil).
+			Bool("is zero", IsZero(reflect.ValueOf(err))).
 			Str("Kind", reflect.TypeOf(err).String()).
 			Msgf("%#v", err)
 	}
@@ -144,7 +144,12 @@ func Retry(num int, fn func()) {
 		}
 
 		all += i
-		log.Warn().Caller().Str("method", "retry").Int("cur_sleep_time", i).Int("all_sleep_time", all).Msg(err.Error())
+		log.Warn().
+			Caller().
+			Str("method", "retry").
+			Int("cur_sleep_time", i).
+			Int("all_sleep_time", all).
+			Msg(err.Error())
 		time.Sleep(time.Second * time.Duration(i))
 	}
 
