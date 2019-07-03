@@ -179,7 +179,30 @@ func TestRetryAt(t *testing.T) {
 	})
 }
 
+func _2nit(a string,m ... int) {
+
+}
+func TestNam1e(t *testing.T) {
+	_fn := reflect.ValueOf(_2nit)
+	fmt.Println(_fn.Type().IsVariadic())
+	fmt.Println(_fn.Type().NumIn())
+
+	fmt.Println(_fn.Type().In(_fn.Type().NumIn()-1).Elem())
+
+	//var variadicType reflect.Value
+	//var isVariadic = _fn.Type().IsVariadic()
+	//if isVariadic {
+	//	variadicType = reflect.New(_fn.Type().In(0)).Elem()
+	//}
+}
 func TestErr(t *testing.T) {
-	s := "hello 世界"
-	fmt.Println(len(s), len([]rune(s)))
+	errors.ErrHandle(errors.Try(func() {
+		errors.ErrHandle(errors.Try(func() {
+			errors.T(true, "90999 error")
+		}), func(err *errors.Err) {
+			errors.Wrap(err, "wrap")
+		})
+	}), func(err *errors.Err) {
+		err.P()
+	})
 }

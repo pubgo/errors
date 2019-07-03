@@ -60,7 +60,7 @@ func Try(fn interface{}, args ...interface{}) func(...interface{}) (err error) {
 	var variadicType reflect.Value
 	var isVariadic = _fn.Type().IsVariadic()
 	if isVariadic {
-		variadicType = reflect.New(_fn.Type().In(0)).Elem()
+		variadicType = reflect.New(_fn.Type().In(_fn.Type().NumIn() - 1).Elem()).Elem()
 	}
 
 	var _args = make([]reflect.Value, len(args))
