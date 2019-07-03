@@ -8,13 +8,12 @@ import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
-	"github.com/rs/zerolog/log"
 	"reflect"
 	"testing"
 	"time"
 )
 
-func TestErrLog(t *testing.T) {
+func TestT(t *testing.T) {
 	defer errors.Debug()
 
 	errors.T(true, "test t")
@@ -23,7 +22,7 @@ func TestErrLog(t *testing.T) {
 func TestRetry(t *testing.T) {
 	defer errors.Debug()
 
-	errors.Retry(5, func() {
+	errors.Retry(3, func() {
 		errors.T(true, "test t")
 	})
 }
@@ -31,21 +30,15 @@ func TestRetry(t *testing.T) {
 func TestIf(t *testing.T) {
 	defer errors.Log()
 
-	log.Info().Msg(errors.If(true, "test true", "test false").(string))
-}
-
-func TestT(t *testing.T) {
-	defer errors.Log()
-
-	errors.T(true, "test t")
+	errors.T(errors.If(true, "test true", "test false").(string) != "test true", "")
 }
 
 func TestTT(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.TT(true, "test tt").
 		M("k", "v").
-		M("tag", "tag").
+		SetTag("ss", 12).
 		Done()
 }
 
@@ -62,36 +55,42 @@ func TestWrapM(t *testing.T) {
 		Done()
 }
 
-func testFunc_1() {
-	defer errors.Handle(func() {})
+func testFunc_2() {
+	defer errors.Handle()()
 
-	errors.WrapM(es.New("sbhbhbh"), "test shhh").
+	errors.WrapM(es.New("testFunc_1"), "test shhh").
 		M("ss", 1).
 		M("input", 2).
 		Done()
 }
 
-func testFunc() {
-	defer errors.Handle(func() {})
+func testFunc_1() {
+	defer errors.Handle()()
 
-	errors.ErrLog(errors.Try(testFunc_1))
+	testFunc_2()
 }
 
-func TestPanic(t *testing.T) {
+func testFunc() {
+	defer errors.Handle()()
+
+	errors.Wrap(errors.Try(testFunc_1), "errors.Wrap")
+}
+
+func TestErrLog(t *testing.T) {
 	defer errors.Debug()
 
-	errors.ErrLog(errors.Try(testFunc)())
+	errors.Wrap(errors.Try(testFunc), "errors.Wrap11111")
 }
 
 func init11() {
-	defer errors.Handle(func() {})
+	defer errors.Handle()()
 
 	//T(true, "sss")
 	errors.T(true, "test tt")
 }
 
 func TestT2(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	init11()
 }
@@ -114,7 +113,7 @@ func TestHandle(t *testing.T) {
 	defer errors.Log()
 
 	func() {
-		defer errors.Handle(func() {})
+		defer errors.Handle()()
 
 		errors.Wrap(es.New("hello error"), "sss")
 	}()
@@ -168,7 +167,7 @@ func TestResp(t *testing.T) {
 }
 
 func TestTicker(t *testing.T) {
-	defer errors.Handle(func() {})
+	defer errors.Handle()()
 
 	errors.Ticker(func(dur time.Time) time.Duration {
 		fmt.Println(dur)
@@ -185,6 +184,7 @@ func TestRetryAt(t *testing.T) {
 }
 
 func TestErr(t *testing.T) {
-	fmt.Println(reflect.TypeOf(es.New("")))
+	s := "hello 世界"
+	fmt.Println(len(s), len([]rune(s)))
 }
 ```
