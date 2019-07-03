@@ -103,7 +103,7 @@ func (t *Err) P() {
 }
 
 func (t *Err) isNil() bool {
-	return t == nil || t.err == nil
+	return t == nil || t.err == nil || IsZero(reflect.ValueOf(t))
 }
 
 func (t *Err) Log() {
