@@ -38,12 +38,11 @@ func WrapM(err interface{}, msg string, args ...interface{}) *Err {
 		return nil
 	}
 
-	m := _handle(reflect.ValueOf(err))
-	if IsZero(m) {
+	_m := _handle(err)
+	if _m == nil || IsZero(reflect.ValueOf(_m)) {
 		return nil
 	}
 
-	_m := m.Interface().(*Err)
 	return &Err{
 		sub:    _m,
 		tag:    _m.tTag(),
@@ -58,12 +57,11 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 		return
 	}
 
-	m := _handle(reflect.ValueOf(err))
-	if IsZero(m) {
+	_m := _handle(err)
+	if _m == nil || IsZero(reflect.ValueOf(_m)) {
 		return
 	}
 
-	_m := m.Interface().(*Err)
 	panic(&Err{
 		sub:    _m,
 		tag:    _m.tTag(),
@@ -78,12 +76,11 @@ func Panic(err interface{}) {
 		return
 	}
 
-	m := _handle(reflect.ValueOf(err))
-	if IsZero(m) {
+	_m := _handle(err)
+	if _m == nil || IsZero(reflect.ValueOf(_m)) {
 		return
 	}
 
-	_m := m.Interface().(*Err)
 	panic(&Err{
 		sub:    _m,
 		tag:    _m.tTag(),

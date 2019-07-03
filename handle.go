@@ -25,30 +25,33 @@ func Resp(fn func(err *Err)) {
 	ErrHandle(recover(), fn)
 }
 
-func _handle(err reflect.Value) reflect.Value {
-	if IsZero(err) {
-		return reflect.Value{}
+func _handle(err interface{}) *Err {
+	if err == nil || IsZero(reflect.ValueOf(err)) {
+		return nil
 	}
 
-	if err.Kind() == reflect.Func {
-		_ty := err.Type()
-
-		T(_ty.NumIn() == 0 && _ty.IsVariadic(), "func input params num error")
-		T(_ty.NumOut() != 1, "func output num error, num: "+strconv.Itoa(_ty.NumOut()))
-
-		_v := valueGet()
-		defer valuePut(_v)
-		
-		err = err.Call(_v)[0]
-		return reflect.Value{}
+	if _e, ok := err.(func() (err error)); ok {
+		err = _e()
 	}
 
-	if IsZero(err) {
-		return reflect.Value{}
+	if _e, ok := err.(func(...interface{}) (err error)); ok {
+		err = _e()
+	}
+
+	if _e, ok := err.(func(...interface{}) func(...interface{}) error); ok {
+		err = _e()()
+	}
+
+	if _e, ok := err.(func(...interface{}) func(...interface{}) func(...interface{}) error); ok {
+		err = _e()()()
+	}
+
+	if err == nil || IsZero(reflect.ValueOf(err)) {
+		return nil
 	}
 
 	m := &Err{}
-	switch e := err.Interface().(type) {
+	switch e := err.(type) {
 	case *Err:
 		m = e
 	case error:
@@ -62,7 +65,7 @@ func _handle(err reflect.Value) reflect.Value {
 		m.err = errors.New(m.msg)
 		m.tag = ErrTags.UnknownTypeCode
 	}
-	return reflect.ValueOf(m)
+	return m
 }
 
 func getCallerFromFn(fn reflect.Value) string {
@@ -91,12 +94,11 @@ func Handle() func() {
 			return
 		}
 
-		m := _handle(reflect.ValueOf(err))
-		if IsZero(m) {
+		_m := _handle(err)
+		if _m == nil || IsZero(reflect.ValueOf(_m)) {
 			return
 		}
 
-		_m := m.Interface().(*Err)
 		panic(&Err{
 			sub:    _m,
 			tag:    _m.tTag(),

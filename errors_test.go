@@ -117,17 +117,25 @@ func TestHandle(t *testing.T) {
 }
 
 func TestErrHandle(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.ErrHandle(errors.Try(errors.T)(true, "test 12345"), func(err *errors.Err) {
 		err.P()
 	})
 
-	errors.ErrHandle(errors.Try(errors.T)(true, "test 12345"))
+	errors.ErrHandle(errors.Try(errors.T)(true, "test 12345")(), func(err *errors.Err) {
+		err.P()
+	})
 
-	errors.ErrHandle("ttt")
-	errors.ErrHandle(es.New("eee"))
-	errors.ErrHandle([]string{"dd"})
+	errors.ErrHandle("ttt", func(err *errors.Err) {
+		err.P()
+	})
+	errors.ErrHandle(es.New("eee"), func(err *errors.Err) {
+		err.P()
+	})
+	errors.ErrHandle([]string{"dd"}, func(err *errors.Err) {
+		err.P()
+	})
 }
 
 func TestIsZero(t *testing.T) {
@@ -163,7 +171,7 @@ func TestResp(t *testing.T) {
 }
 
 func TestTicker(t *testing.T) {
-	defer errors.Handle()()
+	defer errors.Debug()
 
 	errors.Ticker(func(dur time.Time) time.Duration {
 		fmt.Println(dur)
@@ -179,22 +187,6 @@ func TestRetryAt(t *testing.T) {
 	})
 }
 
-func _2nit(a string, m ...int) {
-
-}
-func TestNam1e(t *testing.T) {
-	_fn := reflect.ValueOf(_2nit)
-	fmt.Println(_fn.Type().IsVariadic())
-	fmt.Println(_fn.Type().NumIn())
-
-	fmt.Println(_fn.Type().In(_fn.Type().NumIn() - 1).Elem())
-
-	//var variadicType reflect.Value
-	//var isVariadic = _fn.Type().IsVariadic()
-	//if isVariadic {
-	//	variadicType = reflect.New(_fn.Type().In(0)).Elem()
-	//}
-}
 func TestErr(t *testing.T) {
 	errors.ErrHandle(errors.Try(func() {
 		errors.ErrHandle(errors.Try(func() {

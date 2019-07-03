@@ -10,6 +10,8 @@ import (
 )
 
 func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err error) {
+	defer Handle()()
+
 	assertFn(fn)
 
 	var variadicType reflect.Value
@@ -18,7 +20,12 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 		variadicType = reflect.New(fn.Type().In(fn.Type().NumIn() - 1).Elem()).Elem()
 	}
 
+	_NumIn := fn.Type().NumIn()
 	return func(args ...reflect.Value) func(...reflect.Value) (err error) {
+		defer Handle()()
+
+		T(isVariadic && len(args) < _NumIn-1, "func input params is error,func(%d) now(%d)", _NumIn, len(args))
+		T(!isVariadic && _NumIn != len(args), "func input params is not match,func(%d) now(%d)", _NumIn, len(args))
 
 		for i, k := range args {
 			if IsZero(k) {
@@ -29,6 +36,8 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 			if isVariadic {
 				args[i] = variadicType
 			}
+
+			args[i] = k
 		}
 
 		return func(cfn ...reflect.Value) (err error) {
@@ -70,9 +79,13 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 }
 
 func Try(fn interface{}) func(args ...interface{}) func(...interface{}) (err error) {
+	defer Handle()()
+
 	_tr := TryRaw(reflect.ValueOf(fn))
 
 	return func(args ...interface{}) func(...interface{}) (err error) {
+		defer Handle()()
+
 		var _args = valueGet()
 		defer valuePut(_args)
 
@@ -82,6 +95,8 @@ func Try(fn interface{}) func(args ...interface{}) func(...interface{}) (err err
 		_tr1 := _tr(_args...)
 
 		return func(cfn ...interface{}) (err error) {
+			defer Handle()()
+
 			var _cfn = valueGet()
 			defer valuePut(_cfn)
 
@@ -98,15 +113,8 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		return
 	}
 
-	if _e, ok := err.(func() (err error)); ok {
-		err = _e()
-	}
-
-	if _e, ok := err.(func(...interface{}) (err error)); ok {
-		err = _e()
-	}
-
-	if err == nil || IsZero(reflect.ValueOf(err)) {
+	_m := _handle(err)
+	if _m == nil || IsZero(reflect.ValueOf(_m)) {
 		return
 	}
 
@@ -114,25 +122,13 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 		return
 	}
 
-	if _e, ok := err.(*Err); ok {
-		if len(fn) > 0 {
-			assertFn(reflect.ValueOf(fn[0]))
-			fn[0](_e)
-		}
-		return
+	assertFn(reflect.ValueOf(fn[0]))
+	_m.caller = funcCaller(callDepth)
+	if _m.Tag() == ErrTags.UnknownTypeCode {
+		_m.Log()
 	}
 
-	if l := log.Debug(); l.Enabled() {
-		if _e, ok := err.(error); ok {
-			l.Err(_e).Msg("err msg")
-			return
-		}
-
-		l.Interface("other type", err).
-			Bool("is zero", IsZero(reflect.ValueOf(err))).
-			Str("Kind", reflect.TypeOf(err).String()).
-			Msgf("%#v", err)
-	}
+	fn[0](_m)
 }
 
 func Retry(num int, fn func()) (err error) {
@@ -172,7 +168,7 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 	var _cfn = reflect.Value{}
 	var _fn = TryRaw(reflect.ValueOf(fn))
 	for {
-		if err = _fn(reflect.ValueOf(all))(_cfn); err == nil || IsZero(_cfn) {
+		if err = _fn(reflect.ValueOf(all))(_cfn); err == nil {
 			return
 		}
 
@@ -213,12 +209,13 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 
 		_all += _dur
 		T(_all > Cfg.MaxRetryDur, "more than the max ticker time")
-		if _l := log.Debug(); _l.Enabled() {
+		if _l := log.Debug(); _l.Enabled() && _err != nil {
 			_l.Caller().
+				Err(_err).
 				Str("method", "ticker").
 				Int("retry_count", i).
 				Float64("retry_all_time", _all.Seconds()).
-				Msg(_err.Error())
+				Msg("")
 		}
 
 		time.Sleep(_dur)
