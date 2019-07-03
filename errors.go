@@ -93,7 +93,7 @@ func Panic(err interface{}) {
 }
 
 func P(d ...interface{}) {
-	defer Handle(func() {})
+	defer Handle()()
 
 	for _, i := range d {
 		if IsZero(reflect.ValueOf(i)) {
@@ -111,5 +111,5 @@ func P(d ...interface{}) {
 func assertFn(fn reflect.Value) {
 	T(IsZero(fn), "the func is nil")
 
-	T(fn.Kind() != reflect.Func, "func type error(%s)", fn.Kind())
+	T(fn.Kind() != reflect.Func, "func type error: "+fn.Kind().String(), )
 }

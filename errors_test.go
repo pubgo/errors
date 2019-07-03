@@ -10,7 +10,7 @@ import (
 )
 
 func TestT(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.T(true, "test t")
 }
@@ -51,8 +51,8 @@ func TestWrapM(t *testing.T) {
 		Done()
 }
 
-func testFunc_1() {
-	defer errors.Handle(func() {})
+func testFunc_2() {
+	defer errors.Handle()()
 
 	errors.WrapM(es.New("testFunc_1"), "test shhh").
 		M("ss", 1).
@@ -60,27 +60,33 @@ func testFunc_1() {
 		Done()
 }
 
-func testFunc() {
-	defer errors.Handle(func() {})
+func testFunc_1() {
+	defer errors.Handle()()
 
-	errors.Panic(errors.Try(testFunc_1))
+	testFunc_2()
+}
+
+func testFunc() {
+	defer errors.Handle()()
+
+	errors.Wrap(errors.Try(testFunc_1), "errors.Wrap")
 }
 
 func TestErrLog(t *testing.T) {
 	defer errors.Debug()
 
-	errors.ErrLog(errors.Try(testFunc))
+	errors.Wrap(errors.Try(testFunc), "errors.Wrap11111")
 }
 
 func init11() {
-	defer errors.Handle(func() {})
+	defer errors.Handle()()
 
 	//T(true, "sss")
 	errors.T(true, "test tt")
 }
 
 func TestT2(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	init11()
 }
@@ -103,7 +109,7 @@ func TestHandle(t *testing.T) {
 	defer errors.Log()
 
 	func() {
-		defer errors.Handle(func() {})
+		defer errors.Handle()()
 
 		errors.Wrap(es.New("hello error"), "sss")
 	}()
@@ -157,7 +163,7 @@ func TestResp(t *testing.T) {
 }
 
 func TestTicker(t *testing.T) {
-	defer errors.Handle(func() {})
+	defer errors.Handle()()
 
 	errors.Ticker(func(dur time.Time) time.Duration {
 		fmt.Println(dur)
@@ -184,7 +190,6 @@ func (t *ss) sss() {
 }
 
 func TestErr(t *testing.T) {
-	var _ss = es.New("ss")
-	fmt.Printf("%T", _ss)
-
+	s := "hello 世界"
+	fmt.Println(len(s), len([]rune(s)))
 }

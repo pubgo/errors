@@ -3,8 +3,6 @@ package errors
 import (
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog/log"
-	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -41,8 +39,8 @@ func _handle(err reflect.Value) reflect.Value {
 
 		_ty := err.Type()
 
-		T(_ty.NumIn() == 0 || _ty.IsVariadic(), "func input params num error")
-		T(_ty.NumOut() != 1 || _ty.Out(0) != errType, "func output num and type error")
+		T(_ty.NumIn() == 0 && _ty.IsVariadic(), "func input params num error")
+		T(_ty.NumOut() != 1, "func output num: "+strconv.Itoa(_ty.NumOut()))
 
 		err = err.Call([]reflect.Value{})[0]
 		break
@@ -91,27 +89,26 @@ func getCallerFromFn(fn reflect.Value) string {
 	return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
 }
 
-func Handle(fn func()) {
-	if fn == nil {
-		log.Error().Msg("fn is nil")
-		os.Exit(-1)
-	}
+func Handle() func() {
+	_caller := funcCaller(2)
 
-	err := recover()
-	if err == nil || IsZero(reflect.ValueOf(err)) {
-		return
-	}
+	return func() {
+		err := recover()
+		if err == nil || IsZero(reflect.ValueOf(err)) {
+			return
+		}
 
-	m := _handle(reflect.ValueOf(err))
-	if IsZero(m) {
-		return
-	}
+		m := _handle(reflect.ValueOf(err))
+		if IsZero(m) {
+			return
+		}
 
-	_m := m.Interface().(*Err)
-	panic(&Err{
-		sub:    _m,
-		tag:    _m.tTag(),
-		err:    _m.tErr(),
-		caller: getCallerFromFn(reflect.ValueOf(fn)),
-	})
+		_m := m.Interface().(*Err)
+		panic(&Err{
+			sub:    _m,
+			tag:    _m.tTag(),
+			err:    _m.tErr(),
+			caller: _caller,
+		})
+	}
 }

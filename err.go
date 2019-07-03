@@ -18,7 +18,7 @@ type _Err struct {
 }
 
 func (t *_Err) String() string {
-	defer Handle(func() {})
+	defer Handle()()
 
 	_dt, err := json.Marshal(t)
 	Wrap(err, "json marshal error")

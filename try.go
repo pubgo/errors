@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -34,7 +35,7 @@ func _Try(fn reflect.Value, args ...reflect.Value) func(value reflect.Value) (er
 					m.m["kind"] = _t.Kind()
 					m.m["name"] = _t.Name()
 				}
-				m.caller = getCallerFromFn(fn)
+				//m.caller = getCallerFromFn(fn)
 			}
 
 			if m == nil || IsZero(reflect.ValueOf(m)) || m.err == nil {
@@ -130,7 +131,7 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 }
 
 func Retry(num int, fn func()) {
-	defer Handle(func() {})
+	defer Handle()()
 
 	T(num < 1, "the num param must be more than 0")
 
@@ -153,11 +154,11 @@ func Retry(num int, fn func()) {
 		time.Sleep(time.Second * time.Duration(i))
 	}
 
-	Wrap(err, "retry error,retry_num(%d)", num)
+	Wrap(err, "retry error,retry_num: "+strconv.Itoa(num))
 }
 
 func RetryAt(t time.Duration, fn func(at time.Duration)) {
-	defer Handle(func() {})
+	defer Handle()()
 
 	var err error
 	var all = time.Duration(0)
@@ -182,7 +183,7 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 }
 
 func Ticker(fn func(dur time.Time) time.Duration) {
-	defer Handle(func() {})
+	defer Handle()()
 
 	var _err error
 	var _dur = time.Duration(0)
