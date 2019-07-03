@@ -22,7 +22,7 @@ func T(b bool, msg string, args ...interface{}) {
 
 func TT(b bool, msg string, args ...interface{}) *Err {
 	if !b {
-		return errGet()
+		return nil
 	}
 
 	_err := fmt.Errorf(msg, args...)
@@ -34,16 +34,16 @@ func TT(b bool, msg string, args ...interface{}) *Err {
 }
 
 func WrapM(err interface{}, msg string, args ...interface{}) *Err {
-	if err==nil{
-		return errGet()
+	if err == nil {
+		return nil
 	}
 
 	m := _handle(reflect.ValueOf(err))
 	if IsZero(m) {
-		return errGet()
+		return nil
 	}
 
-	_m:=m.Interface().(*Err)
+	_m := m.Interface().(*Err)
 	return &Err{
 		sub:    _m,
 		tag:    _m.tTag(),
@@ -54,17 +54,16 @@ func WrapM(err interface{}, msg string, args ...interface{}) *Err {
 }
 
 func Wrap(err interface{}, msg string, args ...interface{}) {
-	if err==nil{
+	if err == nil {
 		return
 	}
-
 
 	m := _handle(reflect.ValueOf(err))
 	if IsZero(m) {
 		return
 	}
 
-	_m:=m.Interface().(*Err)
+	_m := m.Interface().(*Err)
 	panic(&Err{
 		sub:    _m,
 		tag:    _m.tTag(),
@@ -75,7 +74,7 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 }
 
 func Panic(err interface{}) {
-	if err==nil{
+	if err == nil {
 		return
 	}
 
@@ -84,7 +83,7 @@ func Panic(err interface{}) {
 		return
 	}
 
-	_m:=m.Interface().(*Err)
+	_m := m.Interface().(*Err)
 	panic(&Err{
 		sub:    _m,
 		tag:    _m.tTag(),

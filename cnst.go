@@ -33,6 +33,13 @@ func GetErrTags() map[uint16]string {
 	return _errTags
 }
 
+func GetErrTag(code uint16) string {
+	if _dt, ok := _errTags[code]; ok {
+		return _dt
+	}
+	return ""
+}
+
 func init() {
 	ErrCodeRegistry(_ErrTags.UnknownTypeCode, "errors_unknown_type")
 }

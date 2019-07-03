@@ -4,31 +4,10 @@ import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
-	"github.com/rs/zerolog/log"
 	"reflect"
 	"testing"
 	"time"
 )
-
-func TestErrLog(t *testing.T) {
-	defer errors.Debug()
-
-	errors.T(true, "test t")
-}
-
-func TestRetry(t *testing.T) {
-	defer errors.Debug()
-
-	errors.Retry(5, func() {
-		errors.T(true, "test t")
-	})
-}
-
-func TestIf(t *testing.T) {
-	defer errors.Log()
-
-	log.Info().Msg(errors.If(true, "test true", "test false").(string))
-}
 
 func TestT(t *testing.T) {
 	defer errors.Log()
@@ -36,12 +15,26 @@ func TestT(t *testing.T) {
 	errors.T(true, "test t")
 }
 
-func TestTT(t *testing.T) {
+func TestRetry(t *testing.T) {
+	defer errors.Debug()
+
+	errors.Retry(3, func() {
+		errors.T(true, "test t")
+	})
+}
+
+func TestIf(t *testing.T) {
 	defer errors.Log()
+
+	errors.T(errors.If(true, "test true", "test false").(string) != "test true", "")
+}
+
+func TestTT(t *testing.T) {
+	defer errors.Debug()
 
 	errors.TT(true, "test tt").
 		M("k", "v").
-		M("tag", "tag").
+		SetTag("ss", 12).
 		Done()
 }
 
@@ -61,7 +54,7 @@ func TestWrapM(t *testing.T) {
 func testFunc_1() {
 	defer errors.Handle(func() {})
 
-	errors.WrapM(es.New("sbhbhbh"), "test shhh").
+	errors.WrapM(es.New("testFunc_1"), "test shhh").
 		M("ss", 1).
 		M("input", 2).
 		Done()
@@ -70,13 +63,13 @@ func testFunc_1() {
 func testFunc() {
 	defer errors.Handle(func() {})
 
-	errors.ErrLog(errors.Try(testFunc_1))
+	errors.Panic(errors.Try(testFunc_1))
 }
 
-func TestPanic(t *testing.T) {
+func TestErrLog(t *testing.T) {
 	defer errors.Debug()
 
-	errors.ErrLog(errors.Try(testFunc)())
+	errors.ErrLog(errors.Try(testFunc))
 }
 
 func init11() {
@@ -191,6 +184,7 @@ func (t *ss) sss() {
 }
 
 func TestErr(t *testing.T) {
-	var _ss *ss
-	_ss.sss()
+	var _ss = es.New("ss")
+	fmt.Printf("%T", _ss)
+
 }

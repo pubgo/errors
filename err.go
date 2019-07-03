@@ -174,12 +174,16 @@ func (t *Err) M(k string, v interface{}) *Err {
 		t.m = make(map[string]interface{}, Cfg.MaxObj)
 	}
 
-	if k == "tag" {
-		t.tag = v.(uint16)
+	t.m[k] = v
+	return t
+}
+
+func (t *Err) SetTag(k string, v uint16) *Err {
+	if t.isNil() {
 		return t
 	}
 
-	t.m[k] = v
+	t.tag = v
 	return t
 }
 
