@@ -179,16 +179,6 @@ func TestRetryAt(t *testing.T) {
 	})
 }
 
-type ss struct {
-}
-
-func (t *ss) sss() {
-	if t == nil {
-		fmt.Println("pp")
-	}
-
-}
-
 func TestErr(t *testing.T) {
 	s := "hello 世界"
 	fmt.Println(len(s), len([]rune(s)))

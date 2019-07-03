@@ -35,7 +35,6 @@ func _Try(fn reflect.Value, args ...reflect.Value) func(value reflect.Value) (er
 					m.m["kind"] = _t.Kind()
 					m.m["name"] = _t.Name()
 				}
-				//m.caller = getCallerFromFn(fn)
 			}
 
 			if m == nil || IsZero(reflect.ValueOf(m)) || m.err == nil {
@@ -145,12 +144,12 @@ func Retry(num int, fn func()) {
 		}
 
 		all += i
-		log.Warn().
-			Caller().
+		log.Debug().
+			Err(err).
 			Str("method", "retry").
 			Int("cur_sleep_time", i).
 			Int("all_sleep_time", all).
-			Msg(err.Error())
+			Msg("")
 		time.Sleep(time.Second * time.Duration(i))
 	}
 
@@ -173,10 +172,11 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 		T(all > Cfg.MaxRetryDur, "more than the max retry duration")
 		if _l := log.Debug(); _l.Enabled() {
 			_l.Caller().
+				Err(err).
 				Str("method", "retry_at").
 				Float64("cur_retry_time", t.Seconds()).
 				Float64("all_retry_time", all.Seconds()).
-				Msg(err.Error())
+				Msg("")
 		}
 		time.Sleep(t)
 	}
