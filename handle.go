@@ -3,7 +3,6 @@ package errors
 import (
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog/log"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -88,11 +87,7 @@ func getCallerFromFn(fn reflect.Value) string {
 
 func Handle() func() {
 	_caller := funcCaller(2)
-
-	if _l := log.Debug(); _l.Enabled() {
-		fmt.Println(_caller)
-	}
-
+	
 	return func() {
 		err := recover()
 		if err == nil || IsZero(reflect.ValueOf(err)) {

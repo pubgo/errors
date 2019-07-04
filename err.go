@@ -81,12 +81,16 @@ func (t *Err) Error() string {
 }
 
 func (t *Err) StackTrace() *_Err {
+	if t.isNil() {
+		return nil
+	}
+
+	_t := t
 	err := t._err()
-	c := err
-	for t.sub != nil {
-		c.Sub = t.sub._err()
-		t.sub = t.sub.sub
-		c = c.Sub
+	_err := err
+	for _t.sub != nil {
+		_err.Sub = _t.sub._err()
+		_t = _t.sub
 	}
 	return err
 }
@@ -102,7 +106,16 @@ func (t *Err) tTag() (tag string) {
 }
 
 func (t *Err) P() {
-	P(t.StackTrace())
+	if t.isNil() {
+		return
+	}
+
+	_t := t
+	for _t != nil {
+		fmt.Print(_t.caller)
+		P(_t._err())
+		_t = _t.sub
+	}
 }
 
 func (t *Err) isNil() bool {

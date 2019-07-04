@@ -99,7 +99,9 @@ func P(d ...interface{}) {
 
 		dt, err := json.MarshalIndent(i, "", "\t")
 		Wrap(err, "P json MarshalIndent error")
-		log.Info().Msg(string(dt))
+		if log.Info().Enabled() {
+			fmt.Println(string(dt))
+		}
 	}
 }
 
