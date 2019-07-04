@@ -15,31 +15,24 @@ var Cfg = struct {
 }
 
 var ErrTags = struct {
-	UnknownTypeCode uint16
+	UnknownTypeCode string
 }{
-	1000,
+	"errors_unknown_type",
 }
 
-var _errTags = make(map[uint16]string)
+var _errTags = make(map[string]bool)
 
-func ErrCodeRegistry(code uint16, err string) {
-	if _err, ok := _errTags[code]; ok {
-		T(ok, "%d has existed, err(%s)", code, _err)
+func ErrCodeRegistry(err string) {
+	if _, ok := _errTags[err]; ok {
+		T(ok, "%s has existed", err)
 	}
-	_errTags[code] = err
+	_errTags[err] = true
 }
 
-func GetErrTags() map[uint16]string {
+func GetErrTags() map[string]bool {
 	return _errTags
 }
 
-func GetErrTag(code uint16) string {
-	if _dt, ok := _errTags[code]; ok {
-		return _dt
-	}
-	return ""
-}
-
 func init() {
-	ErrCodeRegistry(ErrTags.UnknownTypeCode, "errors_unknown_type")
+	ErrCodeRegistry(ErrTags.UnknownTypeCode)
 }

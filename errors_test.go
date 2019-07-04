@@ -34,7 +34,7 @@ func TestTT(t *testing.T) {
 
 	errors.TT(true, "test tt").
 		M("k", "v").
-		SetTag("ss", 12).
+		SetTag("ss", "12").
 		Done()
 }
 

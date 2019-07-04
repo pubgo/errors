@@ -10,7 +10,7 @@ import (
 )
 
 type _Err struct {
-	Tag    uint16                 `json:"tag,omitempty"`
+	Tag    string                 `json:"tag,omitempty"`
 	M      map[string]interface{} `json:"m,omitempty"`
 	Err    error                  `json:"err,omitempty"`
 	Msg    string                 `json:"msg,omitempty"`
@@ -45,7 +45,7 @@ func valuePut(v []reflect.Value) {
 }
 
 type Err struct {
-	tag    uint16
+	tag    string
 	m      map[string]interface{}
 	err    error
 	msg    string
@@ -54,7 +54,7 @@ type Err struct {
 }
 
 func (t *Err) reset() {
-	t.tag = 0
+	t.tag = ""
 	t.m = nil
 	t.err = nil
 	t.msg = ""
@@ -96,8 +96,8 @@ func (t *Err) tErr() (err error) {
 	return
 }
 
-func (t *Err) tTag() (tag uint16) {
-	tag, t.tag = t.tag, 0
+func (t *Err) tTag() (tag string) {
+	tag, t.tag = t.tag, ""
 	return
 }
 
@@ -122,8 +122,8 @@ func (t *Err) Log() {
 			_l = _l.Err(_t.err)
 		}
 
-		if _t.tag != 0 {
-			_l = _l.Uint16("err_tag", _t.tag)
+		if _t.tag != "" {
+			_l = _l.Str("err_tag", _t.tag)
 		}
 
 		if _t.caller != "" {
@@ -181,7 +181,7 @@ func (t *Err) M(k string, v interface{}) *Err {
 	return t
 }
 
-func (t *Err) SetTag(k string, v uint16) *Err {
+func (t *Err) SetTag(k string, v string) *Err {
 	if t.isNil() {
 		return t
 	}
@@ -190,6 +190,6 @@ func (t *Err) SetTag(k string, v uint16) *Err {
 	return t
 }
 
-func (t *Err) Tag() uint16 {
+func (t *Err) Tag() string {
 	return t.tag
 }
