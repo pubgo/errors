@@ -30,7 +30,7 @@ func funcCaller(callDepth int) string {
 	buf.WriteString(file)
 	buf.WriteString(":")
 	buf.WriteString(strconv.Itoa(line))
-	buf.WriteString(".")
+	buf.WriteString(" ")
 	buf.WriteString(ma[len(ma)-1])
 	return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
 }
