@@ -181,12 +181,12 @@ func (t *Err) M(k string, v interface{}) *Err {
 	return t
 }
 
-func (t *Err) SetTag(k string, v string) *Err {
+func (t *Err) SetTag(tag string) *Err {
 	if t.isNil() {
 		return t
 	}
 
-	t.tag = v
+	t.tag = tag
 	return t
 }
 
