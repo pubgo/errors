@@ -90,7 +90,7 @@ func Handle() func() {
 	_caller := funcCaller(2)
 
 	if _l := log.Debug(); _l.Enabled() {
-		_l.Msg(_caller)
+		fmt.Println(_caller)
 	}
 
 	return func() {
