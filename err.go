@@ -103,10 +103,13 @@ func (t *Err) tTag() (tag string) {
 	return
 }
 
-func (t *Err) P() {
+func (t *Err) P() string {
 	if t.isNil() {
-		return
+		return ""
 	}
+
+	var buf = &strings.Builder{}
+	defer buf.Reset()
 
 	var _errs []*_Err
 	_t := t
@@ -129,7 +132,7 @@ func (t *Err) P() {
 				_m = string(dt)
 			}
 
-			fmt.Printf("%s, msg: %s, err: %s, tag: %s, m: %s \n", _errs[i].Caller[0], _errs[i].Msg, _err, _errs[i].Tag, _m)
+			buf.WriteString(fmt.Sprintf("%s, msg: %s, err: %s, tag: %s, m: %s \n", _errs[i].Caller[0], _errs[i].Msg, _err, _errs[i].Tag, _m))
 
 			for _, k := range _errs[i].Caller[1:] {
 				if strings.Contains(k, "github.com/pubgo/errors/handle.go") {
@@ -140,11 +143,12 @@ func (t *Err) P() {
 					continue
 				}
 
-				fmt.Println(k)
+				buf.WriteString(fmt.Sprintln(k))
 			}
 		}
 	}
 
+	return buf.String()
 }
 
 func (t *Err) isNil() bool {

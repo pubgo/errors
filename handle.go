@@ -11,7 +11,7 @@ import (
 
 func Debug() {
 	ErrHandle(recover(), func(err *Err) {
-		err.P()
+		fmt.Println(err.P())
 	})
 }
 
