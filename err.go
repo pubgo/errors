@@ -135,7 +135,7 @@ func (t *Err) P() string {
 			buf.WriteString(fmt.Sprintf("%s, msg: %s, err: %s, tag: %s, m: %s \n", _errs[i].Caller[0], _errs[i].Msg, _err, _errs[i].Tag, _m))
 
 			for _, k := range _errs[i].Caller[1:] {
-				if strings.Contains(k, "github.com/pubgo/errors/handle.go") {
+				if strings.Contains(k, "handle.go") {
 					continue
 				}
 
