@@ -15,12 +15,6 @@ func Debug() {
 	})
 }
 
-func Log() {
-	ErrHandle(recover(), func(err *Err) {
-		err.Log()
-	})
-}
-
 func Resp(fn func(err *Err)) {
 	ErrHandle(recover(), fn)
 }
@@ -61,7 +55,7 @@ func _handle(err interface{}) *Err {
 		m.err = errors.New(e)
 		m.msg = e
 	default:
-		m.msg = fmt.Sprintf("handle type error %#v", e)
+		m.msg = fmt.Sprintf("handle type error, input: %#v", e)
 		m.err = errors.New(m.msg)
 		m.tag = ErrTags.UnknownTypeCode
 	}
@@ -80,30 +74,7 @@ func getCallerFromFn(fn reflect.Value) string {
 	buf.WriteString(file)
 	buf.WriteString(":")
 	buf.WriteString(strconv.Itoa(line))
-	buf.WriteString(".")
+	buf.WriteString(" ")
 	buf.WriteString(ma[len(ma)-1])
 	return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
-}
-
-func Handle() func() {
-	_caller := funcCaller(2)
-	
-	return func() {
-		err := recover()
-		if err == nil || IsZero(reflect.ValueOf(err)) {
-			return
-		}
-
-		_m := _handle(err)
-		if _m == nil || IsZero(reflect.ValueOf(_m)) {
-			return
-		}
-
-		panic(&Err{
-			sub:    _m,
-			tag:    _m.tTag(),
-			err:    _m.tErr(),
-			caller: _caller,
-		})
-	}
 }

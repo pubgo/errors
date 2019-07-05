@@ -3,7 +3,6 @@ package errors
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog/log"
 	"reflect"
 )
 
@@ -16,7 +15,7 @@ func T(b bool, msg string, args ...interface{}) {
 	panic(&Err{
 		err:    _err,
 		msg:    _err.Error(),
-		caller: funcCaller(callDepth),
+		caller: []string{funcCaller(callDepth), funcCaller(callDepth + 1)},
 	})
 }
 
@@ -29,7 +28,7 @@ func TT(b bool, msg string, args ...interface{}) *Err {
 	return &Err{
 		err:    _err,
 		msg:    _err.Error(),
-		caller: funcCaller(callDepth),
+		caller: []string{funcCaller(callDepth), funcCaller(callDepth + 1)},
 	}
 }
 
@@ -48,7 +47,7 @@ func WrapM(err interface{}, msg string, args ...interface{}) *Err {
 		tag:    _m.tTag(),
 		err:    _m.tErr(),
 		msg:    fmt.Sprintf(msg, args...),
-		caller: funcCaller(callDepth),
+		caller: []string{funcCaller(callDepth), funcCaller(callDepth + 1)},
 	}
 }
 
@@ -67,7 +66,7 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 		tag:    _m.tTag(),
 		err:    _m.tErr(),
 		msg:    fmt.Sprintf(msg, args...),
-		caller: funcCaller(callDepth),
+		caller: []string{funcCaller(callDepth), funcCaller(callDepth + 1)},
 	})
 }
 
@@ -85,13 +84,11 @@ func Panic(err interface{}) {
 		sub:    _m,
 		tag:    _m.tTag(),
 		err:    _m.tErr(),
-		caller: funcCaller(callDepth),
+		caller: []string{funcCaller(callDepth), funcCaller(callDepth + 1)},
 	})
 }
 
 func P(d ...interface{}) {
-	defer Handle()()
-
 	for _, i := range d {
 		if IsZero(reflect.ValueOf(i)) {
 			continue
@@ -99,9 +96,7 @@ func P(d ...interface{}) {
 
 		dt, err := json.MarshalIndent(i, "", "\t")
 		Wrap(err, "P json MarshalIndent error")
-		if log.Info().Enabled() {
-			fmt.Println(string(dt))
-		}
+		fmt.Println(string(dt))
 	}
 }
 

@@ -24,7 +24,7 @@ func TestRetry(t *testing.T) {
 }
 
 func TestIf(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.T(errors.If(true, "test true", "test false").(string) != "test true", "")
 }
@@ -52,8 +52,6 @@ func TestWrapM(t *testing.T) {
 }
 
 func testFunc_2() {
-	defer errors.Handle()()
-
 	errors.WrapM(es.New("testFunc_1"), "test shhh").
 		M("ss", 1).
 		M("input", 2).
@@ -61,27 +59,21 @@ func testFunc_2() {
 }
 
 func testFunc_1() {
-	defer errors.Handle()()
-
 	testFunc_2()
 }
 
 func testFunc() {
-	defer errors.Handle()()
 
-	errors.Wrap(errors.Try(testFunc_1)()(), "errors.Wrap")
+	errors.Wrap(errors.Try(testFunc_1), "errors.Wrap")
 }
 
 func TestErrLog(t *testing.T) {
 	defer errors.Debug()
 
-	errors.Wrap(errors.Try(testFunc)()(), "errors.Wrap11111")
+	testFunc()
 }
 
 func init11() {
-	defer errors.Handle()()
-
-	//T(true, "sss")
 	errors.T(true, "test tt")
 }
 
@@ -92,13 +84,13 @@ func TestT2(t *testing.T) {
 }
 
 func TestTry(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.Panic(errors.Try(errors.T)(true, "sss"))
 }
 
 func TestTask(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	errors.Wrap(errors.Try(func() {
 		errors.Wrap(es.New("dd"), "err ")
@@ -106,11 +98,9 @@ func TestTask(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
-	defer errors.Log()
+	defer errors.Debug()
 
 	func() {
-		defer errors.Handle()()
-
 		errors.Wrap(es.New("hello error"), "sss")
 	}()
 
@@ -119,11 +109,9 @@ func TestHandle(t *testing.T) {
 func TestErrHandle(t *testing.T) {
 	defer errors.Debug()
 
-	errors.ErrHandle(errors.Try(errors.T)(true, "test 12345"), func(err *errors.Err) {
-		err.P()
-	})
-
-	errors.ErrHandle(errors.Try(errors.T)(true, "test 12345")(), func(err *errors.Err) {
+	errors.ErrHandle(errors.Try(func() {
+		errors.T(true, "test T")
+	}), func(err *errors.Err) {
 		err.P()
 	})
 
@@ -139,7 +127,7 @@ func TestErrHandle(t *testing.T) {
 }
 
 func TestIsZero(t *testing.T) {
-	defer errors.Log()
+	//defer errors.Log()
 
 	var ss = func() map[string]interface{} {
 		return make(map[string]interface{})
@@ -163,9 +151,7 @@ func TestIsZero(t *testing.T) {
 }
 
 func TestResp(t *testing.T) {
-	defer errors.Resp(func(err *errors.Err) {
-		err.Log()
-	})
+	defer errors.Debug()
 
 	errors.T(true, "data handle")
 }

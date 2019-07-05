@@ -3,7 +3,6 @@ package errors
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog/log"
 	"reflect"
 	"strings"
 	"sync"
@@ -14,12 +13,11 @@ type _Err struct {
 	M      map[string]interface{} `json:"m,omitempty"`
 	Err    error                  `json:"err,omitempty"`
 	Msg    string                 `json:"msg,omitempty"`
-	Caller string                 `json:"caller,omitempty"`
+	Caller []string               `json:"caller,omitempty"`
 	Sub    *_Err                  `json:"sub,omitempty"`
 }
 
 func (t *_Err) String() string {
-	defer Handle()()
 
 	buf := &strings.Builder{}
 	defer buf.Reset()
@@ -49,7 +47,7 @@ type Err struct {
 	m      map[string]interface{}
 	err    error
 	msg    string
-	caller string
+	caller []string
 	sub    *Err
 }
 
@@ -58,7 +56,7 @@ func (t *Err) reset() {
 	t.m = nil
 	t.err = nil
 	t.msg = ""
-	t.caller = ""
+	t.caller = t.caller[:0]
 	t.sub = nil
 }
 
@@ -85,14 +83,14 @@ func (t *Err) StackTrace() *_Err {
 		return nil
 	}
 
-	_t := t
-	err := t._err()
-	_err := err
-	for _t.sub != nil {
-		_err.Sub = _t.sub._err()
-		_t = _t.sub
+	kerr := t._err()
+	c := kerr
+	for t.sub != nil {
+		c.Sub = t.sub._err()
+		t.sub = t.sub.sub
+		c = c.Sub
 	}
-	return err
+	return kerr
 }
 
 func (t *Err) tErr() (err error) {
@@ -110,47 +108,47 @@ func (t *Err) P() {
 		return
 	}
 
+	var _errs []*_Err
 	_t := t
 	for _t != nil {
-		fmt.Print(_t.caller)
-		P(_t._err())
+		_errs = append(_errs, _t._err())
 		_t = _t.sub
 	}
+
+	for i := len(_errs) - 1; i > -1; i-- {
+		if len(_errs[i].Caller) > 0 {
+			var _err string
+			if _errs[i].Err != nil {
+				_err = _errs[i].Err.Error()
+			}
+
+			var _m string
+			if !IsZero(reflect.ValueOf(_errs[i].M)) {
+				dt, err := json.MarshalIndent(_errs[i].M, "", "\t")
+				Wrap(err, "P json MarshalIndent error")
+				_m = string(dt)
+			}
+
+			fmt.Printf("%s, msg: %s, err: %s, tag: %s, m: %s \n", _errs[i].Caller[0], _errs[i].Msg, _err, _errs[i].Tag, _m)
+
+			for _, k := range _errs[i].Caller[1:] {
+				if strings.Contains(k, "github.com/pubgo/errors/handle.go") {
+					continue
+				}
+
+				if strings.Contains(k, "testing/testing.go") {
+					continue
+				}
+
+				fmt.Println(k)
+			}
+		}
+	}
+
 }
 
 func (t *Err) isNil() bool {
 	return t == nil || t.err == nil || IsZero(reflect.ValueOf(t))
-}
-
-func (t *Err) Log() {
-	if t.isNil() {
-		return
-	}
-
-	_t := t
-	for _t != nil {
-		_l := log.Error()
-
-		if _t.err != nil {
-			_l = _l.Err(_t.err)
-		}
-
-		if _t.tag != "" {
-			_l = _l.Str("err_tag", _t.tag)
-		}
-
-		if _t.caller != "" {
-			_l = _l.Str("err_caller", _t.caller)
-		}
-
-		if _t.m != nil {
-			_l = _l.Interface("err_m", _t.m)
-		}
-
-		_l.Msg(_t.msg)
-
-		_t = _t.sub
-	}
 }
 
 func (t *Err) Done() {
@@ -176,7 +174,7 @@ func (t *Err) Caller(depth int) *Err {
 	}
 
 	if t.err != nil && !IsZero(reflect.ValueOf(t.err)) {
-		t.caller = funcCaller(depth)
+		t.caller = append(t.caller, funcCaller(depth))
 	}
 	return t
 }

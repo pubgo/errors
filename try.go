@@ -10,8 +10,6 @@ import (
 )
 
 func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err error) {
-	defer Handle()()
-
 	assertFn(fn)
 
 	var variadicType reflect.Value
@@ -22,8 +20,6 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 
 	_NumIn := fn.Type().NumIn()
 	return func(args ...reflect.Value) func(...reflect.Value) (err error) {
-		defer Handle()()
-
 		T(isVariadic && len(args) < _NumIn-1, "func input params is error,func(%d) now(%d)", _NumIn, len(args))
 		T(!isVariadic && _NumIn != len(args), "func input params is not match,func(%d) now(%d)", _NumIn, len(args))
 
@@ -78,13 +74,11 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 	}
 }
 
-func Try(fn interface{}) func(args ...interface{}) func(...interface{}) (err error) {
-	defer Handle()()
+func Try(fn interface{}) func(...interface{}) func(...interface{}) (err error) {
 
 	_tr := TryRaw(reflect.ValueOf(fn))
 
 	return func(args ...interface{}) func(...interface{}) (err error) {
-		defer Handle()()
 
 		var _args = valueGet()
 		defer valuePut(_args)
@@ -95,7 +89,6 @@ func Try(fn interface{}) func(args ...interface{}) func(...interface{}) (err err
 		_tr1 := _tr(_args...)
 
 		return func(cfn ...interface{}) (err error) {
-			defer Handle()()
 
 			var _cfn = valueGet()
 			defer valuePut(_cfn)
@@ -123,11 +116,7 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 	}
 
 	assertFn(reflect.ValueOf(fn[0]))
-	_m.caller = funcCaller(callDepth)
-	if _m.Tag() == ErrTags.UnknownTypeCode {
-		_m.Log()
-	}
-
+	_m.caller = append(_m.caller, funcCaller(callDepth))
 	fn[0](_m)
 }
 
@@ -161,7 +150,6 @@ func Retry(num int, fn func()) (err error) {
 }
 
 func RetryAt(t time.Duration, fn func(at time.Duration)) {
-	defer Handle()()
 
 	var err error
 	var all = time.Duration(0)
@@ -187,7 +175,6 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 }
 
 func Ticker(fn func(dur time.Time) time.Duration) {
-	defer Handle()()
 
 	var _err error
 	var _dur = time.Duration(0)

@@ -62,7 +62,6 @@ func IsZero(val reflect.Value) bool {
 }
 
 func FnOf(fn interface{}) (reflect.Value, bool, reflect.Value) {
-	defer Handle()()
 
 	_fn := reflect.ValueOf(fn)
 
