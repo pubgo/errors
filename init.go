@@ -32,7 +32,8 @@ func funcCaller(callDepth int) string {
 	buf.WriteString(strconv.Itoa(line))
 	buf.WriteString(" ")
 	buf.WriteString(ma[len(ma)-1])
-	return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
+	return buf.String()
+	//return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
 }
 
 func init() {
