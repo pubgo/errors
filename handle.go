@@ -3,6 +3,7 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -12,6 +13,13 @@ import (
 func Debug() {
 	ErrHandle(recover(), func(err *Err) {
 		fmt.Println(err.P())
+	})
+}
+
+func Assert() {
+	ErrHandle(recover(), func(err *Err) {
+		fmt.Println(err.P())
+		os.Exit(1)
 	})
 }
 

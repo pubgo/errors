@@ -10,8 +10,8 @@ var Cfg = struct {
 	MaxRetryDur time.Duration
 }{
 	Debug:       true,
-	MaxObj:      15,
-	MaxRetryDur: time.Hour * 24,
+	MaxObj:      15,             // the max length of m keys is 15
+	MaxRetryDur: time.Hour * 24, // the max retry duration is one day
 }
 
 var ErrTags = struct {
