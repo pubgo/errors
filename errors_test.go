@@ -10,13 +10,13 @@ import (
 )
 
 func TestT(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.T(true, "test t")
 }
 
 func TestRetry(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.Wrap(errors.Retry(3, func() {
 		errors.T(true, "test t")
@@ -24,13 +24,13 @@ func TestRetry(t *testing.T) {
 }
 
 func TestIf(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.T(errors.If(true, "test true", "test false").(string) != "test true", "")
 }
 
 func TestTT(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.TT(true, "test tt").
 		M("k", "v").
@@ -39,13 +39,13 @@ func TestTT(t *testing.T) {
 }
 
 func TestWrap(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.Wrap(es.New("test"), "test")
 }
 
 func TestWrapM(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.WrapM(es.New("dd"), "test").
 		Done()
@@ -63,12 +63,11 @@ func testFunc_1() {
 }
 
 func testFunc() {
-
 	errors.Wrap(errors.Try(testFunc_1), "errors.Wrap")
 }
 
 func TestErrLog(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	testFunc()
 }
@@ -78,19 +77,19 @@ func init11() {
 }
 
 func TestT2(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	init11()
 }
 
 func TestTry(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.Panic(errors.Try(errors.T)(true, "sss"))
 }
 
 func TestTask(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.Wrap(errors.Try(func() {
 		errors.Wrap(es.New("dd"), "err ")
@@ -98,7 +97,7 @@ func TestTask(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	func() {
 		errors.Wrap(es.New("hello error"), "sss")
@@ -107,7 +106,7 @@ func TestHandle(t *testing.T) {
 }
 
 func TestErrHandle(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.ErrHandle(errors.Try(func() {
 		errors.T(true, "test T")
@@ -151,13 +150,13 @@ func TestIsZero(t *testing.T) {
 }
 
 func TestResp(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.T(true, "data handle")
 }
 
 func TestTicker(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.Ticker(func(dur time.Time) time.Duration {
 		fmt.Println(dur)

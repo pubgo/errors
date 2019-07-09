@@ -12,11 +12,8 @@ func If(b bool, t, f interface{}) interface{} {
 	return f
 }
 
-func Default(t, f interface{}) interface{} {
-	if IsZero(reflect.ValueOf(t)) {
-		return f
-	}
-	return t
+func IsNone(val interface{}) bool {
+	return IsZero(reflect.ValueOf(val))
 }
 
 func IsZero(val reflect.Value) bool {

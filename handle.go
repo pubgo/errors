@@ -4,10 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"reflect"
-	"runtime"
-	"strconv"
-	"strings"
 )
 
 func Debug() {
@@ -28,7 +24,7 @@ func Resp(fn func(err *Err)) {
 }
 
 func _handle(err interface{}) *Err {
-	if err == nil || IsZero(reflect.ValueOf(err)) {
+	if err == nil || IsNone(err) {
 		return nil
 	}
 
@@ -48,7 +44,7 @@ func _handle(err interface{}) *Err {
 		err = _e()()()
 	}
 
-	if err == nil || IsZero(reflect.ValueOf(err)) {
+	if err == nil || IsNone(err) {
 		return nil
 	}
 
@@ -63,26 +59,9 @@ func _handle(err interface{}) *Err {
 		m.err = errors.New(e)
 		m.msg = e
 	default:
-		m.msg = fmt.Sprintf("handle type error, input: %#v", e)
+		m.msg = fmt.Sprintf("unknown type error, input: %#v", e)
 		m.err = errors.New(m.msg)
 		m.tag = ErrTags.UnknownTypeCode
 	}
 	return m
-}
-
-func getCallerFromFn(fn reflect.Value) string {
-	_fn := fn.Pointer()
-	_e := runtime.FuncForPC(_fn)
-	file, line := _e.FileLine(_fn)
-	ma := strings.Split(_e.Name(), ".")
-
-	var buf = &strings.Builder{}
-	defer buf.Reset()
-
-	buf.WriteString(file)
-	buf.WriteString(":")
-	buf.WriteString(strconv.Itoa(line))
-	buf.WriteString(" ")
-	buf.WriteString(ma[len(ma)-1])
-	return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
 }

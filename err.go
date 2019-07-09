@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 )
 
 type _Err struct {
@@ -132,7 +133,8 @@ func (t *Err) P() string {
 				_m = string(dt)
 			}
 
-			buf.WriteString(fmt.Sprintf("%s, msg: %s, err: %s, tag: %s, m: %s \n", _errs[i].Caller[0], _errs[i].Msg, _err, _errs[i].Tag, _m))
+			buf.WriteString(fmt.Sprintf("[Debug] %s %s\n  msg: %s\n  %serr%s: %s\n  tag: %s\n  m: %s \n",
+				time.Now().Format("2006/01/02 - 15:04:05"), _errs[i].Caller[0], _errs[i].Msg, red, reset, _err, _errs[i].Tag, _m))
 
 			for _, k := range _errs[i].Caller[1:] {
 				if strings.Contains(k, "handle.go") {
@@ -143,7 +145,9 @@ func (t *Err) P() string {
 					continue
 				}
 
+				buf.WriteString(time.Now().Format("[Debug] 2006/01/02 - 15:04:05 "))
 				buf.WriteString(fmt.Sprintln(k))
+				buf.WriteString("========================================================================================================================\n\n")
 			}
 		}
 	}
