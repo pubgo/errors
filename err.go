@@ -145,6 +145,10 @@ func (t *Err) P() string {
 					continue
 				}
 
+				if strings.Contains(k, "src/runtime") {
+					continue
+				}
+
 				buf.WriteString(time.Now().Format("[Debug] 2006/01/02 - 15:04:05 "))
 				buf.WriteString(fmt.Sprintln(k))
 				buf.WriteString("========================================================================================================================\n\n")
