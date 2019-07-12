@@ -19,6 +19,13 @@ func Assert() {
 	})
 }
 
+func Throw() {
+	ErrHandle(recover(), func(err *Err) {
+		fmt.Println(err.P())
+		panic(err)
+	})
+}
+
 func Resp(fn func(err *Err)) {
 	ErrHandle(recover(), fn)
 }
