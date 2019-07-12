@@ -13,7 +13,7 @@ func If(b bool, t, f interface{}) interface{} {
 }
 
 func IsNone(val interface{}) bool {
-	return IsZero(reflect.ValueOf(val))
+	return val == nil || IsZero(reflect.ValueOf(val))
 }
 
 func IsZero(val reflect.Value) bool {
