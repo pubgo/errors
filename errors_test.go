@@ -15,6 +15,20 @@ func TestT(t *testing.T) {
 	errors.T(true, "test t")
 }
 
+func TestErrLog2(t *testing.T) {
+	defer errors.Resp(func(err *errors.Err) {
+		errors.ErrLog(err)
+	})
+
+	errors.T(true, "test t")
+}
+
+func TestDebug(t *testing.T) {
+	defer errors.Debug()
+
+	errors.T(true, "test t")
+}
+
 func TestRetry(t *testing.T) {
 	defer errors.Assert()
 
@@ -52,6 +66,8 @@ func TestWrapM(t *testing.T) {
 }
 
 func testFunc_2() {
+	defer errors.Throw(func() {})
+
 	errors.WrapM(es.New("testFunc_1"), "test shhh").
 		M("ss", 1).
 		M("input", 2).
@@ -59,10 +75,14 @@ func testFunc_2() {
 }
 
 func testFunc_1() {
+	defer errors.Throw(func() {})
+
 	testFunc_2()
 }
 
 func testFunc() {
+	defer errors.Throw(func() {})
+
 	errors.Wrap(errors.Try(testFunc_1), "errors.Wrap")
 }
 

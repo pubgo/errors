@@ -1,0 +1,29 @@
+package errors
+
+var errTags = struct {
+	UnknownTypeCode string
+}{
+	"errors_unknown_type",
+}
+
+var _errTags = make(map[string]bool)
+
+func ErrTagRegistry(tag string) {
+	if _, ok := _errTags[tag]; ok {
+		T(ok, "tag %s has existed", tag)
+	}
+	_errTags[tag] = true
+}
+
+func ErrTags() map[string]bool {
+	return _errTags
+}
+
+func ErrTagsMatch(tag string) bool {
+	_, ok := _errTags[tag]
+	return ok
+}
+
+func init() {
+	ErrTagRegistry(errTags.UnknownTypeCode)
+}

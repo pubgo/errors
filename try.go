@@ -53,7 +53,7 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 					default:
 						m.msg = fmt.Sprintf("try type error %#v", d)
 						m.err = errors.New(m.msg)
-						m.tag = ErrTags.UnknownTypeCode
+						m.tag = errTags.UnknownTypeCode
 					}
 				}
 
@@ -75,11 +75,9 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 }
 
 func Try(fn interface{}) func(...interface{}) func(...interface{}) (err error) {
-
 	_tr := TryRaw(reflect.ValueOf(fn))
 
 	return func(args ...interface{}) func(...interface{}) (err error) {
-
 		var _args = valueGet()
 		defer valuePut(_args)
 
@@ -89,7 +87,6 @@ func Try(fn interface{}) func(...interface{}) func(...interface{}) (err error) {
 		_tr1 := _tr(_args...)
 
 		return func(cfn ...interface{}) (err error) {
-
 			var _cfn = valueGet()
 			defer valuePut(_cfn)
 
@@ -122,6 +119,8 @@ func ErrHandle(err interface{}, fn ...func(err *Err)) {
 
 func Retry(num int, fn func()) (err error) {
 	defer Resp(func(_err *Err) {
+		_err.caller = _err.caller[:len(_err.caller)-1]
+		_err.caller = append(_err.caller, getCallerFromFn(reflect.ValueOf(fn)))
 		err = _err
 	})
 
@@ -129,9 +128,8 @@ func Retry(num int, fn func()) (err error) {
 
 	var all = 0
 	var _fn = TryRaw(reflect.ValueOf(fn))
-	var _cfn = reflect.Value{}
 	for i := 0; i < num; i++ {
-		if err = _fn()(_cfn); err == nil {
+		if err = _fn()(); err == nil {
 			return
 		}
 
@@ -153,10 +151,9 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 
 	var err error
 	var all = time.Duration(0)
-	var _cfn = reflect.Value{}
 	var _fn = TryRaw(reflect.ValueOf(fn))
 	for {
-		if err = _fn(reflect.ValueOf(all))(_cfn); err == nil {
+		if err = _fn(reflect.ValueOf(all))(); err == nil {
 			return
 		}
 
@@ -210,10 +207,4 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 
 		time.Sleep(_dur)
 	}
-}
-
-func ErrLog(err interface{}) {
-	ErrHandle(err, func(err *Err) {
-		err.P()
-	})
 }
