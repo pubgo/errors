@@ -24,7 +24,7 @@ func TestErrLog2(t *testing.T) {
 }
 
 func TestDebug(t *testing.T) {
-	defer errors.Debug()
+	defer errors.Assert()
 
 	errors.T(true, "test t")
 }
