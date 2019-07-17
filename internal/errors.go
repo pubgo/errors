@@ -128,20 +128,17 @@ func (t *Err) P() string {
 			continue
 		}
 
-		dt, err := json.MarshalIndent(_errs[i].M, "", "\t")
-		Wrap(err, "P json MarshalIndent error")
-
 		buf.WriteString(fmt.Sprintf(
 			"[%sDebug%s]: %s %s\n"+
 				"[ %smsg%s ]: %s\n"+
 				"[ %serr%s ]: %#v\n"+
 				"[ %stag%s ]: %s\n"+
-				"[  %sm%s  ]: %s\n",
+				"[  %sm%s  ]: %#v\n",
 			Yellow, Reset, time.Now().Format("2006/01/02 - 15:04:05"), _errs[i].Caller[0],
 			Green, Reset, _errs[i].Msg,
 			Red, Reset, _errs[i].Err,
 			Blue, Reset, _errs[i].Tag,
-			Magenta, Reset, string(dt)))
+			Magenta, Reset, _errs[i].M))
 
 		for _, k := range _errs[i].Caller[1:] {
 			if _filter(k) {
@@ -150,10 +147,10 @@ func (t *Err) P() string {
 
 			buf.WriteString(time.Now().Format("[Debug] 2006/01/02 - 15:04:05 "))
 			buf.WriteString(fmt.Sprintln(k))
-			buf.WriteString("========================================================================================================================\n\n")
 		}
 	}
 
+	buf.WriteString("========================================================================================================================")
 	return buf.String()
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err error) {
-	AssertFn(fn)
+	Wrap(AssertFn(fn), "func error")
 
 	var variadicType reflect.Value
 	var isVariadic = fn.Type().IsVariadic()
@@ -35,14 +35,17 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 			args[i] = k
 		}
 
+		_call := FuncCaller(3)
 		return func(cfn ...reflect.Value) (err error) {
-			defer Resp(func(_err *Err) {
-				err = _err
-			})
+			defer func() {
+				ErrHandle(recover(), func(_err *Err) {
+					err = _err.Caller(_call)
+				})
+			}()
 
 			_c := fn.Call(args)
 			if len(cfn) > 0 && !IsZero(cfn[0]) {
-				AssertFn(cfn[0])
+				Wrap(AssertFn(cfn[0]), "func error")
 				cfn[0].Call(_c)
 			}
 			return

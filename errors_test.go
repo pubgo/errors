@@ -10,25 +10,28 @@ import (
 	"time"
 )
 
-func init() {
+func TestCfg(t *testing.T) {
 	errors.P("errors.Cfg", errors.Cfg)
 }
 
 func TestT(t *testing.T) {
 	defer errors.Assert()
-	errors.T(true, "test t")
+
+	errors.TestRun(errors.T, func(desc func(string) *internal.Test) {
+		desc("params is true").In(true, "test t").IsErr()
+		desc("params is false").In(false, "test t").IsNil()
+	})
 }
 
 func TestErrLog2(t *testing.T) {
-	defer errors.Resp(func(err *errors.Err) {
-		errors.ErrLog(err)
+	errors.TestRun(errors.ErrLog, func(desc func(string) *internal.Test) {
+		desc("err log params").In(es.New("sss")).IsNil()
+		desc("nil params").In(es.New("sss")).IsNil()
 	})
-
-	errors.T(true, "test t")
 }
 
 func TestDebug(t *testing.T) {
-	defer errors.Assert()
+	defer errors.Debug()
 
 	errors.T(true, "test t")
 }
@@ -36,9 +39,13 @@ func TestDebug(t *testing.T) {
 func TestRetry(t *testing.T) {
 	defer errors.Assert()
 
-	errors.Wrap(internal.Retry(3, func() {
-		errors.T(true, "test t")
-	}), "test Retry error")
+	errors.TestRun(internal.Retry, func(desc func(string) *internal.Test) {
+		desc("retry(3)").In(3, func() {
+			errors.T(true, "test t")
+		}).IsErr(func(err error) {
+			errors.Wrap(err, "test Retry error")
+		})
+	})
 }
 
 func TestIf(t *testing.T) {
@@ -50,10 +57,17 @@ func TestIf(t *testing.T) {
 func TestTT(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TT(true, "test tt").
-		M("k", "v").
-		SetTag("12").
-		Done()
+	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	_fn := func(b bool) {
+		errors.TT(b, "test tt").M("k", "v").SetTag("12").Done()
+	}
+
+	errors.TestRun(_fn, func(desc func(string) *errors.Test) {
+		desc("true params 1").In(true).IsErr()
+		desc("true params 2").In(true).IsErr()
+		desc("true params 3").In(true).IsErr()
+		desc("false params").In(false).IsNil()
+	})
 }
 
 func TestWrap(t *testing.T) {
@@ -170,7 +184,12 @@ func TestIsZero(t *testing.T) {
 func TestResp(t *testing.T) {
 	defer errors.Assert()
 
-	errors.T(true, "data handle")
+	errors.TestRun(errors.Resp, func(desc func(string) *errors.Test) {
+		desc("resp ok").In(func(err *errors.Err) {
+			err = err.Caller(errors.FuncCaller(2))
+		}).IsNil()
+	})
+
 }
 
 func TestTicker(t *testing.T) {
@@ -209,20 +228,15 @@ func _GetCallerFromFn2() {
 }
 
 func _GetCallerFromFn1(fn func()) {
-	errors.TestRun("AssertFn", errors.AssertFn, func(t *errors.Test) {
-		t.In(reflect.ValueOf(func() {})).IsNil()
-		t.In(reflect.ValueOf(nil)).IsErr()
-	})
-
 	fn()
 }
 
 func TestGetCallerFromFn(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TestRun("GetCallerFromFn", _GetCallerFromFn1, func(t *errors.Test) {
-		t.In(_GetCallerFromFn2).IsNil()
-		t.In(nil).IsErr()
+	errors.TestRun(_GetCallerFromFn1, func(desc func(string) *internal.Test) {
+		desc("GetCallerFromFn ok").In(_GetCallerFromFn2).IsErr()
+		desc("GetCallerFromFn nil").In(nil).IsErr()
 	})
 }
 
@@ -240,8 +254,37 @@ func TestErrTagRegistry(t *testing.T) {
 func TestTest(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TestRun("AssertFn", errors.AssertFn, func(t *errors.Test) {
-		t.In(reflect.ValueOf(func() {})).IsNil()
-		t.In(reflect.ValueOf(nil)).IsErr()
+	errors.TestRun(errors.AssertFn, func(desc func(string) *errors.Test) {
+		desc("params is func 1").
+			In(reflect.ValueOf(func() {})).
+			IsNil(func(err error) {
+				errors.Wrap(err, "check error")
+			})
+
+		desc("params is func 2").
+			In(reflect.ValueOf(func() {})).
+			IsNil(func(err error) {
+				errors.Wrap(err, "check error")
+			})
+
+		desc("params is func 3").
+			In(reflect.ValueOf(func() {})).
+			IsNil(func(err error) {
+				errors.Wrap(err, "check error")
+			})
+
+		desc("params is nil").
+			In(reflect.ValueOf(nil)).
+			IsErr(func(err error) {
+				errors.Wrap(err, "check error ok")
+			})
+	})
+}
+
+func TestThrow(t *testing.T) {
+	errors.TestRun(errors.Throw, func(desc func(string) *internal.Test) {
+		desc("not func type params").In(es.New("ss")).IsErr()
+		desc("func type params").In(func() {}).IsNil()
+		desc("nil type params").In(nil).IsErr()
 	})
 }
