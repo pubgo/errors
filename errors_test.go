@@ -4,14 +4,18 @@ import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
+	"github.com/pubgo/errors/internal"
 	"reflect"
 	"testing"
 	"time"
 )
 
+func init() {
+	errors.P("errors.Cfg", errors.Cfg)
+}
+
 func TestT(t *testing.T) {
 	defer errors.Assert()
-
 	errors.T(true, "test t")
 }
 
@@ -32,7 +36,7 @@ func TestDebug(t *testing.T) {
 func TestRetry(t *testing.T) {
 	defer errors.Assert()
 
-	errors.Wrap(errors.Retry(3, func() {
+	errors.Wrap(internal.Retry(3, func() {
 		errors.T(true, "test t")
 	}), "test Retry error")
 }
@@ -66,8 +70,6 @@ func TestWrapM(t *testing.T) {
 }
 
 func testFunc_2() {
-	defer errors.Throw(func() {})
-
 	errors.WrapM(es.New("testFunc_1"), "test shhh").
 		M("ss", 1).
 		M("input", 2).
@@ -75,15 +77,11 @@ func testFunc_2() {
 }
 
 func testFunc_1() {
-	defer errors.Throw(func() {})
-
 	testFunc_2()
 }
 
 func testFunc() {
-	defer errors.Throw(func() {})
-
-	errors.Wrap(errors.Try(testFunc_1), "errors.Wrap")
+	errors.Wrap(internal.Try(testFunc_1), "errors.Wrap")
 }
 
 func TestErrLog(t *testing.T) {
@@ -105,13 +103,13 @@ func TestT2(t *testing.T) {
 func TestTry(t *testing.T) {
 	defer errors.Assert()
 
-	errors.Panic(errors.Try(errors.T)(true, "sss"))
+	errors.Panic(internal.Try(errors.T)(true, "sss"))
 }
 
 func TestTask(t *testing.T) {
 	defer errors.Assert()
 
-	errors.Wrap(errors.Try(func() {
+	errors.Wrap(internal.Try(func() {
 		errors.Wrap(es.New("dd"), "err ")
 	}), "test wrap")
 }
@@ -128,7 +126,7 @@ func TestHandle(t *testing.T) {
 func TestErrHandle(t *testing.T) {
 	defer errors.Assert()
 
-	errors.ErrHandle(errors.Try(func() {
+	errors.ErrHandle(internal.Try(func() {
 		errors.T(true, "test T")
 	}), func(err *errors.Err) {
 		err.P()
@@ -178,14 +176,14 @@ func TestResp(t *testing.T) {
 func TestTicker(t *testing.T) {
 	defer errors.Assert()
 
-	errors.Ticker(func(dur time.Time) time.Duration {
+	internal.Ticker(func(dur time.Time) time.Duration {
 		fmt.Println(dur)
 		return time.Second
 	})
 }
 
 func TestRetryAt(t *testing.T) {
-	errors.RetryAt(time.Second*2, func(dur time.Duration) {
+	internal.RetryAt(time.Second*2, func(dur time.Duration) {
 		fmt.Println(dur.String())
 
 		errors.T(true, "test RetryAt")
@@ -193,13 +191,57 @@ func TestRetryAt(t *testing.T) {
 }
 
 func TestErr(t *testing.T) {
-	errors.ErrHandle(errors.Try(func() {
-		errors.ErrHandle(errors.Try(func() {
+	errors.ErrHandle(internal.Try(func() {
+		errors.ErrHandle(internal.Try(func() {
 			errors.T(true, "90999 error")
 		}), func(err *errors.Err) {
 			errors.Wrap(err, "wrap")
 		})
 	}), func(err *errors.Err) {
-		err.P()
+		fmt.Println(err.P())
+	})
+}
+
+func _GetCallerFromFn2() {
+	errors.WrapM(es.New("test 123"), "test GetCallerFromFn").
+		M("ss", "dd").
+		Done()
+}
+
+func _GetCallerFromFn1(fn func()) {
+	errors.TestRun("AssertFn", errors.AssertFn, func(t *errors.Test) {
+		t.In(reflect.ValueOf(func() {})).IsNil()
+		t.In(reflect.ValueOf(nil)).IsErr()
+	})
+
+	fn()
+}
+
+func TestGetCallerFromFn(t *testing.T) {
+	defer errors.Assert()
+
+	errors.TestRun("GetCallerFromFn", _GetCallerFromFn1, func(t *errors.Test) {
+		t.In(_GetCallerFromFn2).IsNil()
+		t.In(nil).IsErr()
+	})
+}
+
+func TestErrTagRegistry(t *testing.T) {
+	defer errors.Assert()
+
+	errors.ErrTagRegistry("errors_1")
+	errors.ErrTagRegistry("errors_2")
+	fmt.Printf("%#v\n", errors.ErrTags())
+
+	errors.T(errors.ErrTagsMatch("errors") == true, "errors match error")
+	errors.T(errors.ErrTagsMatch("errors_1") == false, "errors_1 not match")
+}
+
+func TestTest(t *testing.T) {
+	defer errors.Assert()
+
+	errors.TestRun("AssertFn", errors.AssertFn, func(t *errors.Test) {
+		t.In(reflect.ValueOf(func() {})).IsNil()
+		t.In(reflect.ValueOf(nil)).IsErr()
 	})
 }
