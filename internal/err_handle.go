@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"os"
 	"reflect"
+	"strings"
 )
 
 type Test struct {
@@ -42,12 +43,13 @@ func (t *Test) IsNil(fn ...interface{}) {
 func TestRun(fn interface{}, desc func(desc func(string) *Test)) {
 	defer Assert()
 
-	_path := GetCallerFromFn(reflect.ValueOf(desc))
-	fmt.Println("test start:", _path)
+	_funcName := strings.Split(GetCallerFromFn(reflect.ValueOf(fn)), " ")[1]
+	_path := strings.Split(GetCallerFromFn(reflect.ValueOf(desc)), " ")[0]
+	fmt.Printf("test func [%s] start: %s\n", _funcName, _path)
 	Wrap(Try(desc)(func(s string) *Test {
 		return &Test{desc: s, fn: fn}
-	}),"test error")
-	fmt.Printf("test %sover%s: %s\n\n", Red, Reset, _path)
+	}), "test error")
+	fmt.Printf("test func [%s] %sover%s: %s\n\n", _funcName, Red, Reset, _path)
 }
 
 func ErrLog(err interface{}) {
