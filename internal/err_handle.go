@@ -3,7 +3,6 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog/log"
 	"os"
 	"reflect"
 	"strings"
@@ -20,38 +19,42 @@ func (t *Test) In(args ...interface{}) *Test {
 	return &Test{fn: t.fn, args: args, desc: t.desc, name: t.name}
 }
 
-func (t *Test) IsErr(fn ...interface{}) {
-	fmt.Printf("[Desc func %s start] [%s]\n", Green(t.name), t.desc)
+func (t *Test) _Err(b bool, fn ...interface{}) {
+	fmt.Printf("  [Desc func %s] [%s] --> %s\n", Green(t.name+" start"), t.desc, FuncCaller(3))
 	_err := Try(t.fn)(t.args...)(fn...)
-	TT(_err == nil, "[Desc func %s fail]", Red(t.name)).
+	if (_err == nil) == b {
+		fmt.Printf("  [Desc func %s]\n", Red(t.name+" fail"))
+	} else {
+		fmt.Printf("  [Desc func %s]\n", Green(t.name+" ok"))
+	}
+	TT((_err == nil) == b, "%s test error",t.name).
 		M("input", t.args).
 		Done()
+}
 
-	if _l := log.Debug(); _l.Enabled() {
-		ErrLog(_err)
-	}
-	fmt.Printf("[Desc func %s ok]\n\n", Red(t.name))
+func (t *Test) IsErr(fn ...interface{}) {
+	t._Err(true, fn...)
 }
 
 func (t *Test) IsNil(fn ...interface{}) {
-	fmt.Printf("[Desc func %s start] [%s]\n", Green(t.name), t.desc)
-	WrapM(Try(t.fn)(t.args...)(fn...), "[Desc func %s fail]", Red(t.name)).
-		M("input", t.args).
-		Done()
-	fmt.Printf("[Desc func %s ok]\n\n", Red(t.name))
+	t._Err(false, fn...)
 }
 
 func TestRun(fn interface{}, desc func(desc func(string) *Test)) {
-	defer Assert()
-
 	_name := strings.Split(GetCallerFromFn(reflect.ValueOf(fn)), " ")[1]
 	_funcName := strings.Split(GetCallerFromFn(reflect.ValueOf(fn)), " ")[1] + strings.TrimLeft(reflect.TypeOf(fn).String(), "func")
 	_path := strings.Split(GetCallerFromFn(reflect.ValueOf(desc)), " ")[0]
-	fmt.Printf("[Test func %s start] [%s] --> %s\n", Green(_name), _funcName, _path)
-	Wrap(Try(desc)(func(s string) *Test {
+
+	fmt.Printf("[Test func %s] [%s] --> %s\n", Green(_name+" start"), _funcName, _path)
+	_err := Try(desc)(func(s string) *Test {
 		return &Test{desc: s, fn: fn, name: _name}
-	}), "test error")
-	fmt.Printf("[Test func %s success]\n\n", Red(_name))
+	})()
+	if _err != nil {
+		fmt.Printf("[Test func %s]\n", Red(_name+" fail"))
+	} else {
+		fmt.Printf("[Test func %s]\n", Green(_name+" success"))
+	}
+	Panic(_err)
 }
 
 func ErrLog(err interface{}) {

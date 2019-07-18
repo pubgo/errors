@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pubgo/errors"
 	"github.com/pubgo/errors/internal"
+	"github.com/rs/zerolog"
 	"reflect"
 	"testing"
 	"time"
@@ -251,6 +252,7 @@ func TestErrTagRegistry(t *testing.T) {
 
 func TestTest(t *testing.T) {
 	defer errors.Assert()
+	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
 	errors.TestRun(errors.AssertFn, func(desc func(string) *errors.Test) {
 		desc("params is func 1").
@@ -280,9 +282,12 @@ func TestTest(t *testing.T) {
 }
 
 func TestThrow(t *testing.T) {
+	defer errors.Assert()
+
+	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	errors.TestRun(errors.Throw, func(desc func(string) *internal.Test) {
 		desc("not func type params").In(es.New("ss")).IsErr()
 		desc("func type params").In(func() {}).IsNil()
-		desc("nil type params").In(nil).IsErr()
+		desc("nil type params").In(nil).IsNil()
 	})
 }
