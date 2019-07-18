@@ -123,22 +123,23 @@ func (t *Err) P() string {
 		return false
 	}
 
+	buf.WriteString("========================================================================================================================\n")
 	for i := len(_errs) - 1; i > -1; i-- {
 		if len(_errs[i].Caller) < 1 {
 			continue
 		}
 
 		buf.WriteString(fmt.Sprintf(
-			"[%sDebug%s]: %s %s\n"+
-				"[ %smsg%s ]: %s\n"+
-				"[ %serr%s ]: %#v\n"+
-				"[ %stag%s ]: %s\n"+
-				"[  %sm%s  ]: %#v\n",
-			Yellow, Reset, time.Now().Format("2006/01/02 - 15:04:05"), _errs[i].Caller[0],
-			Green, Reset, _errs[i].Msg,
-			Red, Reset, _errs[i].Err,
-			Blue, Reset, _errs[i].Tag,
-			Magenta, Reset, _errs[i].M))
+			"[%s]: %s %s\n"+
+				"[ %s ]: %s\n"+
+				"[ %s ]: %#v\n"+
+				"[ %s ]: %s\n"+
+				"[  %s  ]: %#v\n",
+			Yellow("Debug"), time.Now().Format("2006/01/02 - 15:04:05"), _errs[i].Caller[0],
+			Green("Msg"), _errs[i].Msg,
+			Red("Err"), _errs[i].Err,
+			Blue("Tag"), _errs[i].Tag,
+			Magenta("M"), _errs[i].M))
 
 		for _, k := range _errs[i].Caller[1:] {
 			if _filter(k) {
@@ -149,7 +150,6 @@ func (t *Err) P() string {
 			buf.WriteString(fmt.Sprintln(k))
 		}
 	}
-
 	buf.WriteString("========================================================================================================================")
 	return buf.String()
 }
@@ -159,11 +159,9 @@ func (t *Err) isNil() bool {
 }
 
 func (t *Err) Done() {
-	if t.isNil() {
-		return
+	if !t.isNil() {
+		panic(t)
 	}
-
-	panic(t)
 }
 
 func (t *Err) _msg(msg string, args ...interface{}) *Err {

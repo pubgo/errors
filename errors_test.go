@@ -15,8 +15,6 @@ func TestCfg(t *testing.T) {
 }
 
 func TestT(t *testing.T) {
-	defer errors.Assert()
-
 	errors.TestRun(errors.T, func(desc func(string) *internal.Test) {
 		desc("params is true").In(true, "test t").IsErr()
 		desc("params is false").In(false, "test t").IsNil()
