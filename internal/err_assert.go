@@ -1,4 +1,4 @@
-package errors
+package internal
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 )
 
 var _funcCaller = func(callDepth int) []string {
-	return []string{funcCaller(callDepth), funcCaller(callDepth + 1)}
+	return []string{FuncCaller(callDepth), FuncCaller(callDepth + 1)}
 }
 
 func T(b bool, msg string, args ...interface{}) {
@@ -91,7 +91,9 @@ func WrapM(err interface{}, msg string, args ...interface{}) *Err {
 	}
 }
 
-func assertFn(fn reflect.Value) {
-	T(IsZero(fn), "the func is nil")
-	T(fn.Kind() != reflect.Func, "func type error: %s", fn.Kind().String())
+func AssertFn(fn reflect.Value) error {
+	if IsZero(fn) || fn.Kind() != reflect.Func {
+		return fmt.Errorf("the func is nil(%#v) or type error(%s)", fn, fn.Kind().String())
+	}
+	return nil
 }

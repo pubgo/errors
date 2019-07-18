@@ -1,4 +1,4 @@
-package errors
+package internal
 
 var errTags = struct {
 	UnknownTypeCode string

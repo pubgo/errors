@@ -1,16 +1,15 @@
-package errors
+package internal
 
 import (
-	"errors"
-	"fmt"
 	"github.com/rs/zerolog/log"
 	"reflect"
 	"strconv"
+	"sync"
 	"time"
 )
 
 func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err error) {
-	assertFn(fn)
+	Wrap(AssertFn(fn), "func error")
 
 	var variadicType reflect.Value
 	var isVariadic = fn.Type().IsVariadic()
@@ -36,37 +35,17 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 			args[i] = k
 		}
 
+		_call := FuncCaller(3)
 		return func(cfn ...reflect.Value) (err error) {
 			defer func() {
-				var m *Err
-				if r := recover(); r != nil || !IsZero(reflect.ValueOf(r)) {
-					m = new(Err)
-					switch d := r.(type) {
-					case *Err:
-						m = d
-					case error:
-						m.err = d
-						m.msg = d.Error()
-					case string:
-						m.err = errors.New(d)
-						m.msg = d
-					default:
-						m.msg = fmt.Sprintf("try type error %#v", d)
-						m.err = errors.New(m.msg)
-						m.tag = errTags.UnknownTypeCode
-					}
-				}
-
-				if m == nil || IsZero(reflect.ValueOf(m)) || m.err == nil {
-					err = nil
-					return
-				}
-				err = m
+				ErrHandle(recover(), func(_err *Err) {
+					err = _err.Caller(_call)
+				})
 			}()
 
 			_c := fn.Call(args)
 			if len(cfn) > 0 && !IsZero(cfn[0]) {
-				assertFn(cfn[0])
+				Wrap(AssertFn(cfn[0]), "func error")
 				cfn[0].Call(_c)
 			}
 			return
@@ -98,30 +77,9 @@ func Try(fn interface{}) func(...interface{}) func(...interface{}) (err error) {
 	}
 }
 
-func ErrHandle(err interface{}, fn ...func(err *Err)) {
-	if err == nil || IsNone(err) {
-		return
-	}
-
-	_m := _handle(err)
-	if _m == nil || IsNone(_m) {
-		return
-	}
-
-	if len(fn) == 0 {
-		return
-	}
-
-	assertFn(reflect.ValueOf(fn[0]))
-	_m.caller = append(_m.caller, funcCaller(callDepth))
-	fn[0](_m)
-}
-
 func Retry(num int, fn func()) (err error) {
 	defer Resp(func(_err *Err) {
-		_err.caller = _err.caller[:len(_err.caller)-1]
-		_err.caller = append(_err.caller, getCallerFromFn(reflect.ValueOf(fn)))
-		err = _err
+		err = _err.Caller(GetCallerFromFn(reflect.ValueOf(fn)))
 	})
 
 	T(num < 1, "the num is less than 0")
@@ -148,6 +106,7 @@ func Retry(num int, fn func()) (err error) {
 }
 
 func RetryAt(t time.Duration, fn func(at time.Duration)) {
+	defer Throw(fn)
 
 	var err error
 	var all = time.Duration(0)
@@ -175,6 +134,7 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 }
 
 func Ticker(fn func(dur time.Time) time.Duration) {
+	defer Throw(fn)
 
 	var _err error
 	var _dur = time.Duration(0)
@@ -207,4 +167,19 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 
 		time.Sleep(_dur)
 	}
+}
+
+var _valuePool = sync.Pool{
+	New: func() interface{} {
+		return []reflect.Value{}
+	},
+}
+
+func valueGet() []reflect.Value {
+	return _valuePool.Get().([]reflect.Value)
+}
+
+func valuePut(v []reflect.Value) {
+	v = v[:0]
+	_valuePool.Put(v)
 }

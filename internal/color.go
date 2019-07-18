@@ -1,21 +1,7 @@
-package errors
-
-import (
-	"time"
-)
-
-// default config
-var Cfg = struct {
-	Debug       bool
-	MaxObj      uint8
-	MaxRetryDur time.Duration
-}{
-	Debug:       true,
-	MaxObj:      15,             // the max length of m keys, default=15
-	MaxRetryDur: time.Hour * 24, // the max retry duration, default=one day
-}
+package internal
 
 // terminal color define
+
 var (
 	green   = string([]byte{27, 91, 57, 55, 59, 52, 50, 109})
 	white   = string([]byte{27, 91, 57, 48, 59, 52, 55, 109})
@@ -27,5 +13,30 @@ var (
 	reset   = string([]byte{27, 91, 48, 109})
 )
 
-// func caller depth, default=2
-const callDepth = 2
+func Green(s string) string {
+	return green + s + reset
+}
+
+func White(s string) string {
+	return white + s + reset
+}
+
+func Yellow(s string) string {
+	return yellow + s + reset
+}
+
+func Red(s string) string {
+	return red + s + reset
+}
+
+func Blue(s string) string {
+	return blue + s + reset
+}
+
+func Magenta(s string) string {
+	return magenta + s + reset
+}
+
+func Cyan(s string) string {
+	return cyan + s + reset
+}

@@ -1,17 +1,9 @@
-package errors
+package internal
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog/log"
-	"go/build"
-	"os"
-	"path/filepath"
 	"reflect"
-	"runtime"
-	"strconv"
-	"strings"
-	"sync"
 	"time"
 )
 
@@ -27,8 +19,6 @@ func IsNone(val interface{}) bool {
 }
 
 func IsZero(val reflect.Value) bool {
-	defer Throw(func() {})
-
 	if !val.IsValid() {
 		return true
 	}
@@ -71,8 +61,6 @@ func IsZero(val reflect.Value) bool {
 }
 
 func P(d ...interface{}) {
-	defer Throw(func() {})
-
 	for _, i := range d {
 		if IsZero(reflect.ValueOf(i)) {
 			continue
@@ -82,53 +70,4 @@ func P(d ...interface{}) {
 		Wrap(err, "P json MarshalIndent error")
 		fmt.Println(string(dt))
 	}
-}
-
-var srcDir = filepath.Join(build.Default.GOPATH, "src") + string(os.PathSeparator)
-var modDir = filepath.Join(build.Default.GOPATH, "pkg", "mod") + string(os.PathSeparator)
-
-func funcCaller(callDepth int) string {
-	fn, file, line, ok := runtime.Caller(callDepth)
-	if !ok {
-		log.Error().Msg("no func caller error")
-		return "no func caller"
-	}
-
-	var buf = _bytesPool.Get().(*strings.Builder)
-	defer _bytesPool.Put(buf)
-	defer buf.Reset()
-
-	buf.WriteString(file)
-	buf.WriteString(":")
-	buf.WriteString(strconv.Itoa(line))
-	buf.WriteString(" ")
-
-	ma := strings.Split(runtime.FuncForPC(fn).Name(), ".")
-	buf.WriteString(ma[len(ma)-1])
-	return buf.String()
-}
-
-func getCallerFromFn(fn reflect.Value) string {
-	_fn := fn.Pointer()
-	_e := runtime.FuncForPC(_fn)
-	file, line := _e.FileLine(_fn)
-
-	var buf = _bytesPool.Get().(*strings.Builder)
-	defer _bytesPool.Put(buf)
-	defer buf.Reset()
-
-	buf.WriteString(file)
-	buf.WriteString(":")
-	buf.WriteString(strconv.Itoa(line))
-	buf.WriteString(" ")
-
-	ma := strings.Split(_e.Name(), ".")
-	buf.WriteString(ma[len(ma)-1])
-	return strings.TrimPrefix(strings.TrimPrefix(buf.String(), srcDir), modDir)
-}
-
-var _bytesPool = &sync.Pool{
-	New: func() interface{} {
-		return &strings.Builder{}
-	},
 }
