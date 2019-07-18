@@ -28,6 +28,10 @@ func (t *Test) _Err(b bool, fn ...interface{}) {
 	} else {
 		fmt.Printf("  [Desc func %s] --> %s\n", Green(t.name+" ok"), FuncCaller(3))
 	}
+
+	if _l := log.Debug(); _l.Enabled() {
+		ErrLog(_err)
+	}
 	TT((_err == nil) == b, "%s test error", t.name).
 		M("input", t.args).
 		M("desc", t.desc).
