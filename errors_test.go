@@ -284,7 +284,8 @@ func TestTest(t *testing.T) {
 func TestThrow(t *testing.T) {
 	defer errors.Assert()
 
-	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+
 	errors.TestRun(errors.Throw, func(desc func(string) *internal.Test) {
 		desc("not func type params").In(es.New("ss")).IsErr()
 		desc("func type params").In(func() {}).IsNil()

@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"os"
 	"reflect"
 	"strings"
@@ -20,15 +21,17 @@ func (t *Test) In(args ...interface{}) *Test {
 }
 
 func (t *Test) _Err(b bool, fn ...interface{}) {
-	fmt.Printf("  [Desc func %s] [%s] --> %s\n", Green(t.name+" start"), t.desc, FuncCaller(3))
+	fmt.Printf("  [Desc func %s] [%s]\n", Green(t.name+" start"), t.desc)
 	_err := Try(t.fn)(t.args...)(fn...)
 	if (_err == nil) == b {
-		fmt.Printf("  [Desc func %s]\n", Red(t.name+" fail"))
+		fmt.Printf("  [Desc func %s] --> %s\n", Red(t.name+" fail"), FuncCaller(3))
 	} else {
-		fmt.Printf("  [Desc func %s]\n", Green(t.name+" ok"))
+		fmt.Printf("  [Desc func %s] --> %s\n", Green(t.name+" ok"), FuncCaller(3))
 	}
-	TT((_err == nil) == b, "%s test error",t.name).
+	TT((_err == nil) == b, "%s test error", t.name).
 		M("input", t.args).
+		M("desc", t.desc).
+		M("func_name", t.name).
 		Done()
 }
 
@@ -71,7 +74,9 @@ func Debug() {
 
 func Assert() {
 	ErrHandle(recover(), func(err *Err) {
-		fmt.Println(err.Caller(FuncCaller(callDepth)).P())
+		if _l := log.Debug(); _l.Enabled() {
+			fmt.Println(err.Caller(FuncCaller(callDepth)).P())
+		}
 		os.Exit(1)
 	})
 }
