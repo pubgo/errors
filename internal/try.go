@@ -18,8 +18,8 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 
 	_NumIn := fn.Type().NumIn()
 	return func(args ...reflect.Value) func(...reflect.Value) (err error) {
-		T(isVariadic && len(args) < _NumIn-1, "func input params is error,func(%d,%d)", _NumIn, len(args))
-		T(!isVariadic && _NumIn != len(args), "func input params is not match,func(%d,%d)", _NumIn, len(args))
+		T(isVariadic && len(args) < _NumIn-1, "func %s input params is error,func(%d,%d)", fn.Type(), _NumIn, len(args))
+		T(!isVariadic && _NumIn != len(args), "func %s input params is not match,func(%d,%d)", fn.Type(), _NumIn, len(args))
 
 		for i, k := range args {
 			if IsZero(k) {
