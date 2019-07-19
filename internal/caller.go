@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"github.com/rs/zerolog/log"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -18,7 +17,9 @@ const callDepth = 2
 func FuncCaller(callDepth int) string {
 	fn, file, line, ok := runtime.Caller(callDepth)
 	if !ok {
-		log.Error().Msg("no func caller error")
+		if _l := logger.Error(); _l.Enabled() {
+			_l.Msg("no func caller error")
+		}
 		return "no func caller"
 	}
 

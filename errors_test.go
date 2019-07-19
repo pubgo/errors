@@ -4,17 +4,23 @@ import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
+	"github.com/pubgo/errors/internal"
 	"github.com/rs/zerolog"
 	"reflect"
 	"testing"
 	"time"
 )
 
+func init() {
+	internal.InitDebugLog()
+}
+
 func TestCfg(t *testing.T) {
 	errors.P("errors.Cfg", errors.Cfg)
 }
 
 func TestT(t *testing.T) {
+	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	errors.TestRun(errors.T, func(desc func(string) *errors.Test) {
 		desc("params is true").In(true, "test t").IsErr()
 		desc("params is false").In(false, "test t").IsNil()

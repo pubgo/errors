@@ -3,7 +3,6 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog/log"
 	"os"
 	"reflect"
 	"strings"
@@ -29,7 +28,7 @@ func (t *Test) _Err(b bool, fn ...interface{}) {
 		fmt.Printf("  [Desc func %s] --> %s\n", Green(t.name+" ok"), FuncCaller(3))
 	}
 
-	if _l := log.Debug(); _l.Enabled() {
+	if _l := logger.Debug(); _l.Enabled() {
 		ErrLog(_err)
 	}
 	TT((_err == nil) == b, "%s test error", t.name).
@@ -78,7 +77,7 @@ func Debug() {
 
 func Assert() {
 	ErrHandle(recover(), func(err *Err) {
-		if _l := log.Debug(); _l.Enabled() {
+		if _l := logger.Debug(); _l.Enabled() {
 			fmt.Println(err.Caller(FuncCaller(callDepth)).P())
 		}
 		os.Exit(1)

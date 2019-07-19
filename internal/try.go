@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"github.com/rs/zerolog/log"
 	"reflect"
 	"strconv"
 	"sync"
@@ -92,12 +91,14 @@ func Retry(num int, fn func()) (err error) {
 		}
 
 		all += i
-		log.Debug().
-			Err(err).
-			Str("method", "retry").
-			Int("cur_sleep_time", i).
-			Int("all_sleep_time", all).
-			Msg("")
+		if _l := logger.Debug(); _l.Enabled() {
+			_l.Err(err).
+				Str("method", "retry").
+				Int("cur_sleep_time", i).
+				Int("all_sleep_time", all).
+				Msg("")
+		}
+
 		time.Sleep(time.Second * time.Duration(i))
 	}
 
@@ -121,9 +122,8 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 			T(true, "more than the max(%s) retry duration", Cfg.MaxRetryDur.String())
 		}
 
-		if _l := log.Debug(); _l.Enabled() {
-			_l.Caller().
-				Err(err).
+		if _l := logger.Debug(); _l.Enabled() {
+			_l.Err(err).
 				Str("method", "retry_at").
 				Float64("cur_retry_time", t.Seconds()).
 				Float64("all_retry_time", all.Seconds()).
@@ -156,9 +156,8 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 
 		_all += _dur
 		T(_all > Cfg.MaxRetryDur, "more than the max ticker time")
-		if _l := log.Debug(); _l.Enabled() && _err != nil {
-			_l.Caller().
-				Err(_err).
+		if _l := logger.Debug(); _l.Enabled() && _err != nil {
+			_l.Err(_err).
 				Str("method", "ticker").
 				Int("retry_count", i).
 				Float64("retry_all_time", _all.Seconds()).

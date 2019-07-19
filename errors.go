@@ -20,7 +20,9 @@ var ErrLog = internal.ErrLog
 var ErrHandle = internal.ErrHandle
 var Debug = internal.Debug
 
+// test
 type Test = internal.Test
+
 var TestRun = internal.TestRun
 
 // config

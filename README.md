@@ -67,6 +67,10 @@ import (
 	"time"
 )
 
+func init() {
+	internal.InitDebugLog()
+}
+
 func TestCfg(t *testing.T) {
 	errors.P("errors.Cfg", errors.Cfg)
 }
