@@ -20,7 +20,8 @@ func TestCfg(t *testing.T) {
 }
 
 func TestT(t *testing.T) {
-	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+
 	errors.TestRun(errors.T, func(desc func(string) *errors.Test) {
 		desc("params is true").In(true, "test t").IsErr()
 		desc("params is false").In(false, "test t").IsNil()
