@@ -28,9 +28,10 @@ func (t *Test) _Err(b bool, fn ...interface{}) {
 		fmt.Printf("  [Desc func %s] --> %s\n", Green(t.name+" ok"), FuncCaller(3))
 	}
 
-	if _l := logger.Debug(); _l.Enabled() {
+	if IsDebug() {
 		ErrLog(_err)
 	}
+
 	TT((_err == nil) == b, "%s test error", t.name).
 		M("input", t.args).
 		M("desc", t.desc).
@@ -77,7 +78,7 @@ func Debug() {
 
 func Assert() {
 	ErrHandle(recover(), func(err *Err) {
-		if _l := logger.Debug(); _l.Enabled() {
+		if IsDebug() {
 			fmt.Println(err.Caller(FuncCaller(callDepth)).P())
 		}
 		os.Exit(1)

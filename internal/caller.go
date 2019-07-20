@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -17,9 +18,7 @@ const callDepth = 2
 func FuncCaller(callDepth int) string {
 	fn, file, line, ok := runtime.Caller(callDepth)
 	if !ok {
-		if _l := logger.Error(); _l.Enabled() {
-			_l.Msg("no func caller error")
-		}
+		fmt.Printf(Red("no func caller error"))
 		return "no func caller"
 	}
 

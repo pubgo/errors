@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"sync"
@@ -91,14 +92,10 @@ func Retry(num int, fn func()) (err error) {
 		}
 
 		all += i
-		if _l := logger.Debug(); _l.Enabled() {
-			_l.Err(err).
-				Str("method", "retry").
-				Int("cur_sleep_time", i).
-				Int("all_sleep_time", all).
-				Msg("")
+		if IsDebug() {
+			fmt.Printf("cur_sleep_time: %d, all_sleep_time: %d", i, all)
+			ErrLog(err)
 		}
-
 		time.Sleep(time.Second * time.Duration(i))
 	}
 
@@ -122,12 +119,9 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 			T(true, "more than the max(%s) retry duration", Cfg.MaxRetryDur.String())
 		}
 
-		if _l := logger.Debug(); _l.Enabled() {
-			_l.Err(err).
-				Str("method", "retry_at").
-				Float64("cur_retry_time", t.Seconds()).
-				Float64("all_retry_time", all.Seconds()).
-				Msg("")
+		if IsDebug() {
+			fmt.Printf("cur_retry_time: %d, all_retry_time: %f", t.Seconds(), all.Seconds())
+			ErrLog(err)
 		}
 		time.Sleep(t)
 	}
@@ -156,14 +150,10 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 
 		_all += _dur
 		T(_all > Cfg.MaxRetryDur, "more than the max ticker time")
-		if _l := logger.Debug(); _l.Enabled() && _err != nil {
-			_l.Err(_err).
-				Str("method", "ticker").
-				Int("retry_count", i).
-				Float64("retry_all_time", _all.Seconds()).
-				Msg("")
+		if IsDebug() {
+			fmt.Printf("retry_count: %d, retry_all_time: %f", i, _all.Seconds())
+			ErrLog(_err)
 		}
-
 		time.Sleep(_dur)
 	}
 }

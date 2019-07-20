@@ -1,17 +1,21 @@
 package internal
 
 import (
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"os"
+	"sync"
 )
 
-var logger zerolog.Logger
+var _debug = false
+var _debugOnce sync.Once
 
-func init() {
-	logger = log.With().Str("pkg", "errors").Logger()
+func IsDebug() bool {
+	_debugOnce.Do(func() {
+		debug := os.Getenv("debug")
+		_debug = debug == "true" || debug == "t" || debug == "1" || debug == "ok"
+	})
+	return _debug
 }
 
-func InitDebugLog() {
-	log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr}).With().Caller().Timestamp().Logger()
+func InitDebug() {
+	Wrap(os.Setenv("debug", "true"), "env set error")
 }

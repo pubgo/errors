@@ -1,18 +1,16 @@
-package errors_test
+package tests_test
 
 import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
-	"github.com/pubgo/errors/internal"
-	"github.com/rs/zerolog"
 	"reflect"
 	"testing"
 	"time"
 )
 
 func init() {
-	internal.InitDebugLog()
+	//internal.InitDebug()
 }
 
 func TestCfg(t *testing.T) {
@@ -20,8 +18,6 @@ func TestCfg(t *testing.T) {
 }
 
 func TestT(t *testing.T) {
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-
 	errors.TestRun(errors.T, func(desc func(string) *errors.Test) {
 		desc("params is true").In(true, "test t").IsErr()
 		desc("params is false").In(false, "test t").IsNil()
@@ -257,7 +253,6 @@ func TestErrTagRegistry(t *testing.T) {
 
 func TestTest(t *testing.T) {
 	defer errors.Assert()
-	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
 	errors.TestRun(errors.AssertFn, func(desc func(string) *errors.Test) {
 		desc("params is func 1").
