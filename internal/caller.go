@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/rs/zerolog/log"
+	"fmt"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-// func caller depth, default=2
+// func caller depth
 const callDepth = 2
 
 //var srcDir = filepath.Join(build.Default.GOPATH, "src") + string(os.PathSeparator)
@@ -18,7 +18,7 @@ const callDepth = 2
 func FuncCaller(callDepth int) string {
 	fn, file, line, ok := runtime.Caller(callDepth)
 	if !ok {
-		log.Error().Msg("no func caller error")
+		fmt.Println(Red("no func caller error"))
 		return "no func caller"
 	}
 
@@ -37,9 +37,9 @@ func FuncCaller(callDepth int) string {
 }
 
 func GetCallerFromFn(fn reflect.Value) string {
-	_fn := fn.Pointer()
-	_e := runtime.FuncForPC(_fn)
-	file, line := _e.FileLine(_fn)
+	var _fn = fn.Pointer()
+	var _e = runtime.FuncForPC(_fn)
+	var file, line = _e.FileLine(_fn)
 
 	var buf = _bytesPool.Get().(*strings.Builder)
 	defer _bytesPool.Put(buf)

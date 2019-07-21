@@ -102,8 +102,6 @@ func (t *Err) P() string {
 		return ""
 	}
 
-	defer t.reset()
-
 	var buf = &strings.Builder{}
 	defer buf.Reset()
 
@@ -115,7 +113,7 @@ func (t *Err) P() string {
 	}
 
 	_filter := func(k string) bool {
-		for _, _k := range []string{"handle.go", "testing/testing.go", "src/runtime", "testing/testing.go"} {
+		for _, _k := range []string{"handle.go", "testing/testing.go", "src/runtime", "testing/testing.go", "go/src/reflect"} {
 			if strings.Contains(k, _k) {
 				return true
 			}

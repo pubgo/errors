@@ -1,14 +1,18 @@
-package errors_test
+package tests_test
 
 import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
-	"github.com/rs/zerolog"
+	"github.com/pubgo/errors/internal"
 	"reflect"
 	"testing"
 	"time"
 )
+
+func init() {
+	internal.InitDebug()
+}
 
 func TestCfg(t *testing.T) {
 	errors.P("errors.Cfg", errors.Cfg)
@@ -49,7 +53,6 @@ func TestIf(t *testing.T) {
 func TestTT(t *testing.T) {
 	defer errors.Assert()
 
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	_fn := func(b bool) {
 		errors.TT(b, "test tt").M("k", "v").SetTag("12").Done()
 	}
@@ -93,7 +96,6 @@ func testFunc() {
 func TestErrLog(t *testing.T) {
 	defer errors.Assert()
 
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	errors.TestRun(testFunc, func(desc func(string) *errors.Test) {
 		desc("test func").In().IsErr()
 	})
@@ -250,7 +252,6 @@ func TestErrTagRegistry(t *testing.T) {
 
 func TestTest(t *testing.T) {
 	defer errors.Assert()
-	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
 	errors.TestRun(errors.AssertFn, func(desc func(string) *errors.Test) {
 		desc("params is func 1").
@@ -281,8 +282,6 @@ func TestTest(t *testing.T) {
 
 func TestThrow(t *testing.T) {
 	defer errors.Assert()
-
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
 	errors.TestRun(errors.Throw, func(desc func(string) *errors.Test) {
 		desc("not func type params").In(es.New("ss")).IsErr()

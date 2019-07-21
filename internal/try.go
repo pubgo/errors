@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/rs/zerolog/log"
+	"fmt"
 	"reflect"
 	"strconv"
 	"sync"
@@ -19,8 +19,8 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 
 	_NumIn := fn.Type().NumIn()
 	return func(args ...reflect.Value) func(...reflect.Value) (err error) {
-		T(isVariadic && len(args) < _NumIn-1, "func input params is error,func(%d,%d)", _NumIn, len(args))
-		T(!isVariadic && _NumIn != len(args), "func input params is not match,func(%d,%d)", _NumIn, len(args))
+		T(isVariadic && len(args) < _NumIn-1, "func %s input params is error,func(%d,%d)", fn.Type(), _NumIn, len(args))
+		T(!isVariadic && _NumIn != len(args), "func %s input params is not match,func(%d,%d)", fn.Type(), _NumIn, len(args))
 
 		for i, k := range args {
 			if IsZero(k) {
@@ -92,12 +92,9 @@ func Retry(num int, fn func()) (err error) {
 		}
 
 		all += i
-		log.Debug().
-			Err(err).
-			Str("method", "retry").
-			Int("cur_sleep_time", i).
-			Int("all_sleep_time", all).
-			Msg("")
+		if IsDebug() {
+			fmt.Printf("Retry current state, cur_sleep_time: %d, all_sleep_time: %d\n", i, all)
+		}
 		time.Sleep(time.Second * time.Duration(i))
 	}
 
@@ -121,13 +118,9 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 			T(true, "more than the max(%s) retry duration", Cfg.MaxRetryDur.String())
 		}
 
-		if _l := log.Debug(); _l.Enabled() {
-			_l.Caller().
-				Err(err).
-				Str("method", "retry_at").
-				Float64("cur_retry_time", t.Seconds()).
-				Float64("all_retry_time", all.Seconds()).
-				Msg("")
+		if IsDebug() {
+			fmt.Printf("cur_retry_time: %d, all_retry_time: %f", t.Seconds(), all.Seconds())
+			ErrLog(err)
 		}
 		time.Sleep(t)
 	}
@@ -156,15 +149,10 @@ func Ticker(fn func(dur time.Time) time.Duration) {
 
 		_all += _dur
 		T(_all > Cfg.MaxRetryDur, "more than the max ticker time")
-		if _l := log.Debug(); _l.Enabled() && _err != nil {
-			_l.Caller().
-				Err(_err).
-				Str("method", "ticker").
-				Int("retry_count", i).
-				Float64("retry_all_time", _all.Seconds()).
-				Msg("")
+		if IsDebug() {
+			fmt.Printf("retry_count: %d, retry_all_time: %f", i, _all.Seconds())
+			ErrLog(_err)
 		}
-
 		time.Sleep(_dur)
 	}
 }
