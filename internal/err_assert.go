@@ -41,7 +41,7 @@ func Panic(err interface{}) {
 	}
 
 	_m := _handle(err)
-	if _m == nil || IsNone(_m) {
+	if  _m == nil || IsNone(_m) {
 		return
 	}
 

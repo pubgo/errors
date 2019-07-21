@@ -17,5 +17,5 @@ func IsDebug() bool {
 }
 
 func InitDebug() {
-	Wrap(os.Setenv("debug", "true"), "env set error")
+	Wrap(os.Setenv("debug", "true"), "set debug env error")
 }

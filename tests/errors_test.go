@@ -4,13 +4,14 @@ import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
+	"github.com/pubgo/errors/internal"
 	"reflect"
 	"testing"
 	"time"
 )
 
 func init() {
-	//internal.InitDebug()
+	internal.InitDebug()
 }
 
 func TestCfg(t *testing.T) {
@@ -52,7 +53,6 @@ func TestIf(t *testing.T) {
 func TestTT(t *testing.T) {
 	defer errors.Assert()
 
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	_fn := func(b bool) {
 		errors.TT(b, "test tt").M("k", "v").SetTag("12").Done()
 	}
@@ -96,7 +96,6 @@ func testFunc() {
 func TestErrLog(t *testing.T) {
 	defer errors.Assert()
 
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	errors.TestRun(testFunc, func(desc func(string) *errors.Test) {
 		desc("test func").In().IsErr()
 	})
@@ -283,8 +282,6 @@ func TestTest(t *testing.T) {
 
 func TestThrow(t *testing.T) {
 	defer errors.Assert()
-
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
 	errors.TestRun(errors.Throw, func(desc func(string) *errors.Test) {
 		desc("not func type params").In(es.New("ss")).IsErr()

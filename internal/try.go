@@ -93,8 +93,7 @@ func Retry(num int, fn func()) (err error) {
 
 		all += i
 		if IsDebug() {
-			fmt.Printf("cur_sleep_time: %d, all_sleep_time: %d", i, all)
-			ErrLog(err)
+			fmt.Printf("Retry current state, cur_sleep_time: %d, all_sleep_time: %d\n", i, all)
 		}
 		time.Sleep(time.Second * time.Duration(i))
 	}

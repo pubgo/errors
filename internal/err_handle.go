@@ -22,17 +22,19 @@ func (t *Test) In(args ...interface{}) *Test {
 func (t *Test) _Err(b bool, fn ...interface{}) {
 	fmt.Printf("  [Desc func %s] [%s]\n", Green(t.name+" start"), t.desc)
 	_err := Try(t.fn)(t.args...)(fn...)
-	if (_err == nil) == b {
-		fmt.Printf("  [Desc func %s] --> %s\n", Red(t.name+" fail"), FuncCaller(3))
-	} else {
+	_isErr := IsNone(_err)
+
+	if (b && !_isErr) || (!b && _isErr) {
 		fmt.Printf("  [Desc func %s] --> %s\n", Green(t.name+" ok"), FuncCaller(3))
+	} else {
+		fmt.Printf("  [Desc func %s] --> %s\n", Red(t.name+" fail"), FuncCaller(3))
 	}
 
 	if IsDebug() {
 		ErrLog(_err)
 	}
 
-	TT((_err == nil) == b, "%s test error", t.name).
+	TT((b && _isErr) || (!b && !_isErr), "%s test error", t.name).
 		M("input", t.args).
 		M("desc", t.desc).
 		M("func_name", t.name).
