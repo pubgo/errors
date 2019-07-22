@@ -4,14 +4,13 @@ import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
-	"github.com/pubgo/errors/internal"
 	"reflect"
 	"testing"
 	"time"
 )
 
 func init() {
-	internal.InitDebug()
+	//internal.InitDebug()
 }
 
 func TestCfg(t *testing.T) {
