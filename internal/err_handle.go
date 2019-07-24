@@ -50,6 +50,8 @@ func (t *Test) IsNil(fn ...interface{}) {
 }
 
 func TestRun(fn interface{}, desc func(desc func(string) *Test)) {
+	Wrap(AssertFn(reflect.ValueOf(fn)), "func error")
+
 	_name := strings.Split(GetCallerFromFn(reflect.ValueOf(fn)), " ")[1]
 	_funcName := strings.Split(GetCallerFromFn(reflect.ValueOf(fn)), " ")[1] + strings.TrimLeft(reflect.TypeOf(fn).String(), "func")
 	_path := strings.Split(GetCallerFromFn(reflect.ValueOf(desc)), " ")[0]

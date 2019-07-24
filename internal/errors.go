@@ -113,7 +113,7 @@ func (t *Err) P() string {
 	}
 
 	_filter := func(k string) bool {
-		for _, _k := range []string{"handle.go", "testing/testing.go", "src/runtime", "testing/testing.go", "go/src/reflect"} {
+		for _, _k := range []string{"handle.go", "testing/testing.go", "src/runtime", "testing/testing.go", "src/reflect"} {
 			if strings.Contains(k, _k) {
 				return true
 			}
@@ -127,17 +127,22 @@ func (t *Err) P() string {
 			continue
 		}
 
-		buf.WriteString(fmt.Sprintf(
-			"[%s]: %s %s\n"+
-				"[ %s ]: %s\n"+
-				"[ %s ]: %#v\n"+
-				"[ %s ]: %s\n"+
-				"[  %s  ]: %#v\n",
-			Yellow("Debug"), time.Now().Format("2006/01/02 - 15:04:05"), _errs[i].Caller[0],
-			Green("Msg"), _errs[i].Msg,
-			Red("Err"), _errs[i].Err,
-			Blue("Tag"), _errs[i].Tag,
-			Magenta("M"), _errs[i].M))
+		buf.WriteString(fmt.Sprintf("[%s]: %s %s\n", Yellow("Debug"), time.Now().Format("2006/01/02 - 15:04:05"), _errs[i].Caller[0]))
+		if _errs[i].Msg != "" {
+			buf.WriteString(fmt.Sprintf("[ %s ]: %s\n",Green("Msg"), _errs[i].Msg))
+		}
+
+		if _errs[i].Err != nil {
+			buf.WriteString(fmt.Sprintf("[ %s ]: %#v\n", Red("Err"), _errs[i].Err))
+		}
+
+		if _errs[i].Tag != "" {
+			buf.WriteString(fmt.Sprintf("[ %s ]: %s\n", Blue("Tag"), _errs[i].Tag))
+		}
+
+		if _errs[i].M != nil || len(_errs[i].M) != 0 {
+			buf.WriteString(fmt.Sprintf("[  %s  ]: %#v\n", Magenta("M"), _errs[i].M))
+		}
 
 		for _, k := range _errs[i].Caller[1:] {
 			if _filter(k) {

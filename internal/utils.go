@@ -60,15 +60,15 @@ func IsZero(val reflect.Value) bool {
 	}
 }
 
-func P(d ...interface{}) {
+func P(s string, d ...interface{}) {
+	fmt.Print(s)
 	for _, i := range d {
-		_i := reflect.ValueOf(i)
-		if IsZero(_i) {
+		if i == nil || IsNone(i) {
 			continue
 		}
 
 		dt, err := json.MarshalIndent(i, "", "\t")
 		Wrap(err, "P json MarshalIndent error")
-		fmt.Println(_i.Type().String(), string(dt))
+		fmt.Println(string(dt))
 	}
 }

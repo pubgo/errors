@@ -35,13 +35,10 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 			args[i] = k
 		}
 
-		_call := FuncCaller(3)
 		return func(cfn ...reflect.Value) (err error) {
-			defer func() {
-				ErrHandle(recover(), func(_err *Err) {
-					err = _err.Caller(_call)
-				})
-			}()
+			defer Resp(func(_err *Err) {
+				err = _err.Caller(GetCallerFromFn(fn))
+			})
 
 			_c := fn.Call(args)
 			if len(cfn) > 0 && !IsZero(cfn[0]) {
@@ -78,9 +75,7 @@ func Try(fn interface{}) func(...interface{}) func(...interface{}) (err error) {
 }
 
 func Retry(num int, fn func()) (err error) {
-	defer Resp(func(_err *Err) {
-		err = _err.Caller(GetCallerFromFn(reflect.ValueOf(fn)))
-	})
+	defer Throw(fn)
 
 	T(num < 1, "the num is less than 0")
 
