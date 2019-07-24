@@ -289,3 +289,41 @@ func TestThrow(t *testing.T) {
 		desc("nil type params").In(nil).IsErr()
 	})
 }
+
+type a1 struct {
+	name string
+}
+
+func F1(name string) func(func(err *errors.Err)) *a1 {
+	return func(i func(err *errors.Err)) *a1 {
+		defer errors.Resp(func(err *internal.Err) {
+			i(err)
+		})
+
+		errors.T(name == "", "name is null")
+		return &a1{name: name}
+	}
+}
+
+func F2(name string) func(func(err *errors.Err)) *a1 {
+	return func(i func(err *errors.Err)) *a1 {
+		defer errors.Resp(i)
+
+		return F1(name)(func(err *errors.Err) {
+			panic(err)
+		})
+	}
+}
+
+func TestWrapCall(t *testing.T) {
+	defer errors.Assert()
+
+	errors.Wrap(errors.Try(F2)("")(func(a *a1) {
+
+	}), "")
+
+	f := F2("")(func(err *errors.Err) {
+		fmt.Println(err)
+	})
+	fmt.Println(f.name)
+}
