@@ -42,15 +42,24 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 					if len(cfn) > 0 && !IsZero(cfn[0]) {
 						_fn = cfn[0]
 					}
-					err = _err.Caller(GetCallerFromFn(_fn))
+					_err.Caller(GetCallerFromFn(_fn))
+					err = _err
 				})
 			}()
 
 			_c := fn.Call(args)
 			if len(cfn) > 0 && !IsZero(cfn[0]) {
 				Wrap(AssertFn(cfn[0]), "func type error")
-				T(cfn[0].Type().NumIn() != fn.Type().NumOut(), "callback func input num and output num not match[%d]<->[%d]", cfn[0].Type().NumIn(), fn.Type().NumOut())
-				T(cfn[0].Type().NumIn() != 0 && cfn[0].Type().In(0) != fn.Type().Out(0), "callback func out type error [%s]<->[%s]", cfn[0].Type().In(0), fn.Type().Out(0))
+				TT(cfn[0].Type().NumIn() != fn.Type().NumOut(), func(err *Err) {
+					err.Msg("callback func input num and output num not match[%d]<->[%d]", cfn[0].Type().NumIn(), fn.Type().NumOut())
+				})
+
+				if cfn[0].Type().NumIn() != 0 && cfn[0].Type().In(0) != fn.Type().Out(0) {
+					TT(true, func(err *Err) {
+						err.Msg("callback func out type error [%s]<->[%s]", cfn[0].Type().In(0), fn.Type().Out(0))
+					})
+				}
+
 				cfn[0].Call(_c)
 			}
 			return
@@ -83,8 +92,6 @@ func Try(fn interface{}) func(...interface{}) func(...interface{}) (err error) {
 }
 
 func Retry(num int, fn func()) (err error) {
-	defer Throw(fn)
-
 	T(num < 1, "the num is less than 0")
 
 	var all = 0
@@ -106,8 +113,6 @@ func Retry(num int, fn func()) (err error) {
 }
 
 func RetryAt(t time.Duration, fn func(at time.Duration)) {
-	defer Throw(fn)
-
 	var err error
 	var all = time.Duration(0)
 	var _fn = TryRaw(reflect.ValueOf(fn))
@@ -130,8 +135,6 @@ func RetryAt(t time.Duration, fn func(at time.Duration)) {
 }
 
 func Ticker(fn func(dur time.Time) time.Duration) {
-	defer Throw(fn)
-
 	var _err error
 	var _dur = time.Duration(0)
 	var _all = time.Duration(0)

@@ -68,7 +68,10 @@ func (t *Err) Err() error {
 }
 
 func (t *Err) Error() string {
-	return t.err.Error()
+	if t.err != nil {
+		return t.err.Error()
+	}
+	return ""
 }
 
 func (t *Err) StackTrace() *_Err {
@@ -167,29 +170,19 @@ func (t *Err) isNil() bool {
 	return t == nil || t.err == nil || IsNone(t)
 }
 
-func (t *Err) Done() {
-	if !t.isNil() {
-		panic(t)
-	}
-}
-
-func (t *Err) _msg(msg string, args ...interface{}) *Err {
-	if !t.isNil() {
-		t.msg = fmt.Sprintf(msg, args...)
-	}
-
-	return t
-}
-
-func (t *Err) Caller(caller string) *Err {
+func (t *Err) Caller(caller string) {
 	if !t.isNil() {
 		t.caller = append(t.caller, caller)
 	}
-
-	return t
 }
 
-func (t *Err) M(k string, v interface{}) *Err {
+func (t *Err) Msg(msg string, args ...interface{}) {
+	if !t.isNil() {
+		t.msg = fmt.Sprintf(msg, args...)
+	}
+}
+
+func (t *Err) M(k string, v interface{}) {
 	if !t.isNil() {
 		if t.m == nil {
 			t.m = make(map[string]interface{}, Cfg.MaxObj)
@@ -197,16 +190,12 @@ func (t *Err) M(k string, v interface{}) *Err {
 
 		t.m[k] = v
 	}
-
-	return t
 }
 
-func (t *Err) SetTag(tag string) *Err {
+func (t *Err) SetTag(tag string) {
 	if !t.isNil() {
 		t.tag = tag
 	}
-
-	return t
 }
 
 func (t *Err) Tag() string {

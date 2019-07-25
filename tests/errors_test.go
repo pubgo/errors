@@ -55,7 +55,11 @@ func TestTT(t *testing.T) {
 	defer errors.Assert()
 
 	_fn := func(b bool) {
-		errors.TT(b, "test tt").M("k", "v").SetTag("12").Done()
+		errors.TT(b, func(err *internal.Err) {
+			err.Msg("test tt")
+			err.M("k", "v")
+			err.SetTag("12")
+		})
 	}
 
 	errors.TestRun(_fn, func(desc func(string) *errors.Test) {
@@ -75,15 +79,15 @@ func TestWrap(t *testing.T) {
 func TestWrapM(t *testing.T) {
 	defer errors.Assert()
 
-	errors.WrapM(es.New("dd"), "test").
-		Done()
+	errors.Wrap(es.New("dd"), "test")
 }
 
 func testFunc_2() {
-	errors.WrapM(es.New("testFunc_1"), "test shhh").
-		M("ss", 1).
-		M("input", 2).
-		Done()
+	errors.WrapM(es.New("testFunc_1"), func(err *internal.Err) {
+		err.Msg("test shhh")
+		err.M("ss", 1)
+		err.M("input", 2)
+	})
 }
 
 func testFunc_1() {
@@ -186,7 +190,7 @@ func TestResp(t *testing.T) {
 
 	errors.TestRun(errors.Resp, func(desc func(string) *errors.Test) {
 		desc("resp ok").In(func(err *errors.Err) {
-			err = err.Caller(errors.FuncCaller(2))
+			err.Caller(errors.FuncCaller(2))
 		}).IsNil()
 	})
 
@@ -222,9 +226,10 @@ func TestErr(t *testing.T) {
 }
 
 func _GetCallerFromFn2() {
-	errors.WrapM(es.New("test 123"), "test GetCallerFromFn").
-		M("ss", "dd").
-		Done()
+	errors.WrapM(es.New("test 123"), func(err *internal.Err) {
+		err.Msg("test GetCallerFromFn")
+		err.M("ss", "dd")
+	})
 }
 
 func _GetCallerFromFn1(fn func()) {
@@ -290,42 +295,4 @@ func TestThrow(t *testing.T) {
 		desc("func type params").In(func() {}).IsNil()
 		desc("nil type params").In(nil).IsErr()
 	})
-}
-
-type a1 struct {
-	name string
-}
-
-func F1(name string) func(func(err *errors.Err)) *a1 {
-	return func(i func(err *errors.Err)) *a1 {
-		defer errors.Resp(func(err *internal.Err) {
-			i(err)
-		})
-
-		errors.T(name == "", "name is null")
-		return &a1{name: name}
-	}
-}
-
-func F2(name string) func(func(err *errors.Err)) *a1 {
-	return func(i func(err *errors.Err)) *a1 {
-		defer errors.Resp(i)
-
-		return F1(name)(func(err *errors.Err) {
-			panic(err)
-		})
-	}
-}
-
-func TestWrapCall(t *testing.T) {
-	defer errors.Assert()
-
-	errors.Wrap(errors.Try(F2)("")(func(a *a1) {
-
-	}), "")
-
-	f := F2("")(func(err *errors.Err) {
-		fmt.Println(err)
-	})
-	fmt.Println(f.name)
 }

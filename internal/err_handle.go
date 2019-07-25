@@ -34,11 +34,13 @@ func (t *Test) _Err(b bool, fn ...interface{}) {
 		ErrLog(_err)
 	}
 
-	TT((b && _isErr) || (!b && !_isErr), "%s test error", t.name).
-		M("input", t.args).
-		M("desc", t.desc).
-		M("func_name", t.name).
-		Done()
+	TT((b && _isErr) || (!b && !_isErr), func(err *Err) {
+		err.Msg("%s test error", t.name)
+		err.M("input", t.args)
+		err.M("desc", t.desc)
+		err.M("func_name", t.name)
+	})
+
 }
 
 func (t *Test) IsErr(fn ...interface{}) {
@@ -70,7 +72,8 @@ func TestRun(fn interface{}, desc func(desc func(string) *Test)) {
 
 func ErrLog(err interface{}) {
 	ErrHandle(err, func(err *Err) {
-		fmt.Println(err.Caller(FuncCaller(callDepth)).P())
+		err.Caller(FuncCaller(callDepth))
+		fmt.Println(err.P())
 	})
 }
 
@@ -92,16 +95,18 @@ func Assert() {
 
 func Throw(fn interface{}) {
 	_fn := reflect.ValueOf(fn)
-	T(fn == nil || IsZero(_fn) || _fn.Kind() != reflect.Func, "the input must be func type and not null, input --> %#v",fn)
+	T(fn == nil || IsZero(_fn) || _fn.Kind() != reflect.Func, "the input must be func type and not null, input --> %#v", fn)
 
 	ErrHandle(recover(), func(err *Err) {
-		panic(err.Caller(GetCallerFromFn(_fn)))
+		err.Caller(GetCallerFromFn(_fn))
+		panic(err)
 	})
 }
 
 func Resp(fn func(err *Err)) {
 	ErrHandle(recover(), func(err *Err) {
-		fn(err.Caller(GetCallerFromFn(reflect.ValueOf(fn))))
+		err.Caller(GetCallerFromFn(reflect.ValueOf(fn)))
+		fn(err)
 	})
 }
 

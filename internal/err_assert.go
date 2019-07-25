@@ -20,15 +20,14 @@ func T(b bool, msg string, args ...interface{}) {
 	})
 }
 
-func TT(b bool, msg string, args ...interface{}) *Err {
+func TT(b bool, fn func(err *Err)) {
 	if !b {
-		return nil
+		return
 	}
 
-	return &Err{
-		err:    fmt.Errorf(msg, args...),
-		caller: _funcCaller(callDepth + 1),
-	}
+	_err := &Err{caller: _funcCaller(callDepth + 1)}
+	fn(_err)
+	panic(_err)
 }
 
 func Panic(err interface{}) {
@@ -68,23 +67,24 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 	})
 }
 
-func WrapM(err interface{}, msg string, args ...interface{}) *Err {
+func WrapM(err interface{}, fn func(err *Err)) {
 	if err == nil {
-		return nil
+		return
 	}
 
 	_m := _handle(err)
 	if _m == nil || IsNone(_m) {
-		return nil
+		return
 	}
 
-	return &Err{
+	_err := &Err{
 		sub:    _m,
 		tag:    _m.tTag(),
 		err:    _m.tErr(),
-		msg:    fmt.Sprintf(msg, args...),
 		caller: _funcCaller(callDepth + 1),
 	}
+	fn(_err)
+	panic(_err)
 }
 
 func AssertFn(fn reflect.Value) error {
