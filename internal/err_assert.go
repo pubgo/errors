@@ -14,10 +14,8 @@ func T(b bool, msg string, args ...interface{}) {
 		return
 	}
 
-	_err := fmt.Errorf(msg, args...)
 	panic(&Err{
-		err:    _err,
-		msg:    _err.Error(),
+		err:    fmt.Errorf(msg, args...),
 		caller: _funcCaller(callDepth + 1),
 	})
 }
@@ -27,10 +25,8 @@ func TT(b bool, msg string, args ...interface{}) *Err {
 		return nil
 	}
 
-	_err := fmt.Errorf(msg, args...)
 	return &Err{
-		err:    _err,
-		msg:    _err.Error(),
+		err:    fmt.Errorf(msg, args...),
 		caller: _funcCaller(callDepth + 1),
 	}
 }
@@ -41,7 +37,7 @@ func Panic(err interface{}) {
 	}
 
 	_m := _handle(err)
-	if  _m == nil || IsNone(_m) {
+	if _m == nil || IsNone(_m) {
 		return
 	}
 
@@ -93,7 +89,7 @@ func WrapM(err interface{}, msg string, args ...interface{}) *Err {
 
 func AssertFn(fn reflect.Value) error {
 	if IsZero(fn) || fn.Kind() != reflect.Func {
-		return fmt.Errorf("the func is nil(%#v) or type error(%s)", fn, fn.Kind().String())
+		return fmt.Errorf("the func is nil[%#v] or not func type[%s]", fn, fn.Kind().String())
 	}
 	return nil
 }

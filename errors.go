@@ -44,7 +44,6 @@ var GetCallerFromFn = internal.GetCallerFromFn
 
 // try
 var Try = internal.Try
-var TryRaw = internal.TryRaw
 var Retry = internal.Retry
 var RetryAt = internal.RetryAt
 var Ticker = internal.Ticker
