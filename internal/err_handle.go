@@ -83,15 +83,16 @@ func Debug() {
 func Assert() {
 	ErrHandle(recover(), func(err *Err) {
 		if IsDebug() {
-			fmt.Println(err.Caller(FuncCaller(callDepth)).P())
+			fmt.Println(err.P())
 		}
+
 		os.Exit(1)
 	})
 }
 
 func Throw(fn interface{}) {
 	_fn := reflect.ValueOf(fn)
-	T(fn == nil || IsZero(_fn) || _fn.Kind() != reflect.Func, "the input must be func type and not null")
+	T(fn == nil || IsZero(_fn) || _fn.Kind() != reflect.Func, "the input must be func type and not null, input --> %#v",fn)
 
 	ErrHandle(recover(), func(err *Err) {
 		panic(err.Caller(GetCallerFromFn(_fn)))

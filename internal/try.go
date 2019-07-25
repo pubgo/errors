@@ -36,13 +36,21 @@ func TryRaw(fn reflect.Value) func(...reflect.Value) func(...reflect.Value) (err
 		}
 
 		return func(cfn ...reflect.Value) (err error) {
-			defer Resp(func(_err *Err) {
-				err = _err.Caller(GetCallerFromFn(fn))
-			})
+			defer func() {
+				ErrHandle(recover(), func(_err *Err) {
+					_fn := fn
+					if len(cfn) > 0 && !IsZero(cfn[0]) {
+						_fn = cfn[0]
+					}
+					err = _err.Caller(GetCallerFromFn(_fn))
+				})
+			}()
 
 			_c := fn.Call(args)
 			if len(cfn) > 0 && !IsZero(cfn[0]) {
-				Wrap(AssertFn(cfn[0]), "func error")
+				Wrap(AssertFn(cfn[0]), "func type error")
+				T(cfn[0].Type().NumIn() != fn.Type().NumOut(), "callback func input num and output num not match[%d]<->[%d]", cfn[0].Type().NumIn(), fn.Type().NumOut())
+				T(cfn[0].Type().NumIn() != 0 && cfn[0].Type().In(0) != fn.Type().Out(0), "callback func out type error [%s]<->[%s]", cfn[0].Type().In(0), fn.Type().Out(0))
 				cfn[0].Call(_c)
 			}
 			return

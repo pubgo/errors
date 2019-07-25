@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sync"
 	"time"
 )
 
@@ -70,5 +71,16 @@ func P(s string, d ...interface{}) {
 		dt, err := json.MarshalIndent(i, "", "\t")
 		Wrap(err, "P json MarshalIndent error")
 		fmt.Println(string(dt))
+	}
+}
+
+func GetOkOnce(fn func() bool) func() bool {
+	var _isOk = false
+	var _okOnce sync.Once
+	return func() bool {
+		_okOnce.Do(func() {
+			_isOk = fn()
+		})
+		return _isOk
 	}
 }

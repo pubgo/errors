@@ -89,7 +89,7 @@ func WrapM(err interface{}, msg string, args ...interface{}) *Err {
 
 func AssertFn(fn reflect.Value) error {
 	if IsZero(fn) || fn.Kind() != reflect.Func {
-		return fmt.Errorf("the func is nil(%#v) or type error(%s)", fn, fn.Kind().String())
+		return fmt.Errorf("the func is nil[%#v] or not func type[%s]", fn, fn.Kind().String())
 	}
 	return nil
 }

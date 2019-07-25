@@ -117,6 +117,12 @@ func (t *Err) P() string {
 			if strings.Contains(k, _k) {
 				return true
 			}
+
+			if IsSkipErrorFile() {
+				if strings.Contains(k, "github.com/pubgo/errors") {
+					return true
+				}
+			}
 		}
 		return false
 	}
@@ -129,11 +135,11 @@ func (t *Err) P() string {
 
 		buf.WriteString(fmt.Sprintf("[%s]: %s %s\n", Yellow("Debug"), time.Now().Format("2006/01/02 - 15:04:05"), _errs[i].Caller[0]))
 		if _errs[i].Msg != "" {
-			buf.WriteString(fmt.Sprintf("[ %s ]: %s\n",Green("Msg"), _errs[i].Msg))
+			buf.WriteString(fmt.Sprintf("[ %s ]: %s\n", Green("Msg"), _errs[i].Msg))
 		}
 
 		if _errs[i].Err != nil {
-			buf.WriteString(fmt.Sprintf("[ %s ]: %#v\n", Red("Err"), _errs[i].Err))
+			buf.WriteString(fmt.Sprintf("[ %s ]: %s\n", Red("Err"), _errs[i].Err))
 		}
 
 		if _errs[i].Tag != "" {

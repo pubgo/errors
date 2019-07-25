@@ -12,6 +12,7 @@ import (
 
 func init() {
 	internal.InitDebug()
+	//internal.InitSkipErrorFile()
 }
 
 func TestCfg(t *testing.T) {
@@ -227,6 +228,7 @@ func _GetCallerFromFn2() {
 }
 
 func _GetCallerFromFn1(fn func()) {
+	errors.Panic(errors.AssertFn(reflect.ValueOf(fn)))
 	fn()
 }
 
