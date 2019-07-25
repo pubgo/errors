@@ -3,7 +3,11 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 )
@@ -82,5 +86,17 @@ func GetOkOnce(fn func() bool) func() bool {
 			_isOk = fn()
 		})
 		return _isOk
+	}
+}
+
+func LoadEnvFile(envPath string) {
+	_p, err := filepath.EvalSymlinks(envPath)
+	dt, err := ioutil.ReadFile(_p)
+	Wrap(err, "file open error")
+	for _, env := range strings.Split(string(dt), "\n") {
+		envA := strings.Split(env, "=")
+		if len(envA) == 2 {
+			Panic(os.Setenv(envA[0], envA[1]))
+		}
 	}
 }

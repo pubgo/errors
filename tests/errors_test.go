@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pubgo/errors"
 	"github.com/pubgo/errors/internal"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -295,4 +296,9 @@ func TestThrow(t *testing.T) {
 		desc("func type params").In(func() {}).IsNil()
 		desc("nil type params").In(nil).IsErr()
 	})
+}
+
+func TestLoadEnv(t *testing.T) {
+	errors.LoadEnvFile("../.env")
+	errors.T(os.Getenv("a") != "1", "env error")
 }

@@ -41,6 +41,8 @@ var IsNone = internal.IsNone
 var P = internal.P
 var FuncCaller = internal.FuncCaller
 var GetCallerFromFn = internal.GetCallerFromFn
+var LoadEnvFile = internal.LoadEnvFile
+
 
 // try
 var Try = internal.Try
