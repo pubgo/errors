@@ -16,6 +16,7 @@ var T = internal.T
 var Throw = internal.Throw
 var Assert = internal.Assert
 var Resp = internal.Resp
+var RespErr = internal.RespErr
 var ErrLog = internal.ErrLog
 var ErrHandle = internal.ErrHandle
 var Debug = internal.Debug
