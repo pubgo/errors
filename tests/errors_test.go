@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	internal.InitDebug()
+	errors.InitDebug()
 	//internal.InitSkipErrorFile()
 }
 
@@ -240,6 +240,8 @@ func _GetCallerFromFn1(fn func()) {
 
 func TestGetCallerFromFn(t *testing.T) {
 	defer errors.Assert()
+
+	fmt.Println(errors.GetCallerFromFn(reflect.ValueOf(_GetCallerFromFn1)))
 
 	errors.TestRun(_GetCallerFromFn1, func(desc func(string) *errors.Test) {
 		desc("GetCallerFromFn ok").In(_GetCallerFromFn2).IsErr()

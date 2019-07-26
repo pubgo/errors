@@ -42,7 +42,7 @@ var P = internal.P
 var FuncCaller = internal.FuncCaller
 var GetCallerFromFn = internal.GetCallerFromFn
 var LoadEnvFile = internal.LoadEnvFile
-
+var InitDebug = internal.InitDebug
 
 // try
 var Try = internal.Try
