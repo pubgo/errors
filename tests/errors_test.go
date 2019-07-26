@@ -7,6 +7,7 @@ import (
 	"github.com/pubgo/errors/internal"
 	"os"
 	"reflect"
+	"runtime/debug"
 	"testing"
 	"time"
 )
@@ -303,4 +304,33 @@ func TestThrow(t *testing.T) {
 func TestLoadEnv(t *testing.T) {
 	errors.LoadEnvFile("../.env")
 	errors.T(os.Getenv("a") != "1", "env error")
+}
+
+func init1000(j int) {
+	go func() {
+		for i := 0; i < 1000000; i++ {
+			errors.T(i == j, "test sig %d", j)
+		}
+	}()
+}
+
+func TestSig(t *testing.T) {
+	defer errors.Resp(func(err *internal.Err) {
+		fmt.Println(err.P())
+		debug.PrintStack()
+		fmt.Println("ss")
+
+		err.Tag()
+	})
+
+	for i := 0; i < 1000; i++ {
+		go func(j int) {
+			defer errors.Debug()
+
+			for _i := 0; _i < 1000000; _i++ {
+				errors.T(_i == j, "test sig %d", j)
+			}
+		}(i)
+	}
+	select {}
 }
