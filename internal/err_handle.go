@@ -88,7 +88,6 @@ func Assert() {
 		if IsDebug() {
 			fmt.Println(err.P())
 		}
-
 		os.Exit(1)
 	})
 }
@@ -107,6 +106,12 @@ func Resp(fn func(err *Err)) {
 	ErrHandle(recover(), func(err *Err) {
 		err.Caller(GetCallerFromFn(reflect.ValueOf(fn)))
 		fn(err)
+	})
+}
+
+func RespErr(err error) {
+	ErrHandle(recover(), func(_err *Err) {
+		err = _err
 	})
 }
 
