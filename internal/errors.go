@@ -167,7 +167,7 @@ func (t *Err) P() string {
 }
 
 func (t *Err) isNil() bool {
-	return t == nil || t.err == nil || IsNone(t)
+	return t == nil || IsNone(t)
 }
 
 func (t *Err) Caller(caller string) {
@@ -187,7 +187,6 @@ func (t *Err) M(k string, v interface{}) {
 		if t.m == nil {
 			t.m = make(map[string]interface{}, Cfg.MaxObj)
 		}
-
 		t.m[k] = v
 	}
 }

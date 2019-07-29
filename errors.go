@@ -8,8 +8,12 @@ type Err = internal.Err
 // error assert
 var Panic = internal.Panic
 var Wrap = internal.Wrap
-var WrapM = internal.WrapM
-var TT = internal.TT
+var WrapM = func(err interface{}, fn func(err *Err)) {
+	internal.WrapM(err, fn)
+}
+var TT = func(b bool, fn func(err *Err)) {
+	internal.TT(b, fn)
+}
 var T = internal.T
 
 // error handle
@@ -24,7 +28,9 @@ var Debug = internal.Debug
 // test
 type Test = internal.Test
 
-var TestRun = internal.TestRun
+var TestRun = func(fn interface{}, desc func(desc func(string) *Test)) {
+	internal.TestRun(fn, desc)
+}
 
 // config
 var Cfg = &internal.Cfg

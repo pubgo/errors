@@ -91,12 +91,15 @@ func GetOkOnce(fn func() bool) func() bool {
 
 func LoadEnvFile(envPath string) {
 	_p, err := filepath.EvalSymlinks(envPath)
+	Wrap(err, "%s EvalSymlinks error", envPath)
 	dt, err := ioutil.ReadFile(_p)
-	Wrap(err, "file open error")
+	Wrap(err, "%s ReadFile error", envPath)
 	for _, env := range strings.Split(string(dt), "\n") {
 		envA := strings.Split(env, "=")
-		if len(envA) == 2 {
-			Panic(os.Setenv(envA[0], envA[1]))
+		if len(envA) != 2 {
+			continue
 		}
+		
+		Panic(os.Setenv(envA[0], envA[1]))
 	}
 }

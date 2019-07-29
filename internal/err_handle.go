@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"runtime/debug"
 	"strings"
 )
 
@@ -80,6 +81,7 @@ func ErrLog(err interface{}) {
 func Debug() {
 	ErrHandle(recover(), func(err *Err) {
 		fmt.Println(err.P())
+		debug.PrintStack()
 	})
 }
 
@@ -87,6 +89,7 @@ func Assert() {
 	ErrHandle(recover(), func(err *Err) {
 		if IsDebug() {
 			fmt.Println(err.P())
+			debug.PrintStack()
 		}
 		os.Exit(1)
 	})
@@ -109,9 +112,9 @@ func Resp(fn func(err *Err)) {
 	})
 }
 
-func RespErr(err error) {
+func RespErr(err *error) {
 	ErrHandle(recover(), func(_err *Err) {
-		err = _err
+		*err = _err
 	})
 }
 

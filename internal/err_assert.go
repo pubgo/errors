@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"reflect"
 )
 
@@ -24,9 +26,14 @@ func TT(b bool, fn func(err *Err)) {
 	if !b {
 		return
 	}
-
-	_err := &Err{caller: _funcCaller(callDepth + 1)}
+	_err := &Err{caller: _funcCaller(callDepth + 2)}
 	fn(_err)
+
+	if _err.msg == "" {
+		log.Fatalf("msg is null")
+	}
+	_err.err = errors.New(_err.msg)
+
 	panic(_err)
 }
 
@@ -81,7 +88,7 @@ func WrapM(err interface{}, fn func(err *Err)) {
 		sub:    _m,
 		tag:    _m.tTag(),
 		err:    _m.tErr(),
-		caller: _funcCaller(callDepth + 1),
+		caller: _funcCaller(callDepth + 2),
 	}
 	fn(_err)
 	panic(_err)

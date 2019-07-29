@@ -305,24 +305,29 @@ func TestLoadEnv(t *testing.T) {
 	errors.T(os.Getenv("a") != "1", "env error")
 }
 
-type Result struct {
-	IsErr func() bool
-}
+func init2() (err error) {
+	defer errors.RespErr(&err)
 
-func init1000(j int) Result {
-	for i := 0; i < 1000000; i++ {
-		errors.T(i == j, "test sig %d", j)
-	}
-	return Result{}
+	errors.TT(true, func(err *errors.Err) {
+		err.Msg("ok sss %d", 23)
+	})
+	return
 }
 
 func TestSig(t *testing.T) {
 	defer errors.Assert()
+	errors.Panic(init2())
+}
 
-	a := errors.Try(func(i int) {
+func TestIsNone(t *testing.T) {
+	defer errors.Debug()
 
+	errors.TestRun(errors.IsNone, func(desc func(string) *errors.Test) {
+		desc("is null").In(nil).IsNil(func(b bool) {
+			errors.T(b != true, "error")
+		})
+		desc("is ok").In("ok").IsNil(func(b bool) {
+			errors.T(b == false, "error")
+		})
 	})
-
-	var result Result
-	errors.Panic(a(1)(&result))
 }
