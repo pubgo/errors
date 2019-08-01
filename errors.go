@@ -19,7 +19,9 @@ var T = internal.T
 // error handle
 var Throw = internal.Throw
 var Assert = internal.Assert
-var Resp = internal.Resp
+var Resp = func(fn func(err *Err)) {
+	internal.Resp(fn)
+}
 var RespErr = internal.RespErr
 var ErrLog = internal.ErrLog
 var ErrHandle = internal.ErrHandle
