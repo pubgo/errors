@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"github.com/pubgo/errors"
 	"github.com/pubgo/errors/internal"
+	"io/ioutil"
 	"os"
 	"reflect"
+	"runtime/trace"
+	"strings"
 	"testing"
 	"time"
 )
@@ -321,6 +324,13 @@ func TestSig(t *testing.T) {
 
 func TestIsNone(t *testing.T) {
 	defer errors.Debug()
+
+	buf := &strings.Builder{}
+	trace.Start(buf)
+	defer func() {
+		ioutil.WriteFile("trace.log",[]byte(buf.String()),0666)
+	}()
+	defer trace.Stop()
 
 	errors.TestRun(errors.IsNone, func(desc func(string) *errors.Test) {
 		desc("is null").In(nil).IsNil(func(b bool) {

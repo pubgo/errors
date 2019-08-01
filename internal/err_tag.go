@@ -8,11 +8,13 @@ var errTags = struct {
 
 var _errTags = make(map[string]bool)
 
-func ErrTagRegistry(tag string) {
-	if _, ok := _errTags[tag]; ok {
-		T(ok, "tag %s has existed", tag)
+func ErrTagRegistry(tags ...string) {
+	for _, tag := range tags {
+		if _, ok := _errTags[tag]; ok {
+			T(ok, "tag %s has existed", tag)
+		}
+		_errTags[tag] = true
 	}
-	_errTags[tag] = true
 }
 
 func ErrTags() map[string]bool {
