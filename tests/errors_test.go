@@ -328,7 +328,7 @@ func TestIsNone(t *testing.T) {
 	buf := &strings.Builder{}
 	trace.Start(buf)
 	defer func() {
-		ioutil.WriteFile("trace.log",[]byte(buf.String()),0666)
+		ioutil.WriteFile("trace.log", []byte(buf.String()), 0666)
 	}()
 	defer trace.Stop()
 
@@ -339,5 +339,13 @@ func TestIsNone(t *testing.T) {
 		desc("is ok").In("ok").IsNil(func(b bool) {
 			errors.T(b == false, "error")
 		})
+	})
+}
+
+func TestResult(t *testing.T) {
+	errors.Resp(func(err *errors.Err) {
+		errors.Panic(err.StackTrace().String()(func(i interface{}) {
+
+		}))
 	})
 }

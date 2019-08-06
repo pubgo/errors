@@ -1,6 +1,8 @@
 package errors
 
-import "github.com/pubgo/errors/internal"
+import (
+	"github.com/pubgo/errors/internal"
+)
 
 // Err
 type Err = internal.Err
