@@ -341,11 +341,3 @@ func TestIsNone(t *testing.T) {
 		})
 	})
 }
-
-func TestResult(t *testing.T) {
-	errors.Resp(func(err *errors.Err) {
-		errors.Panic(err.StackTrace().String()(func(i interface{}) {
-
-		}))
-	})
-}

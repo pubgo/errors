@@ -13,20 +13,31 @@ type Err = internal.Err
 // error assert
 var Panic = internal.Panic
 var Wrap = internal.Wrap
-var WrapM = internal.WrapM
-var TT = internal.TT
+var WrapM = func(err interface{}, fn func(err *Err)) {
+	internal.WrapM(err, fn)
+}
+var TT = func(b bool, fn func(err *Err)) {
+	internal.TT(b, fn)
+}
 var T = internal.T
 
 // error handle
 var Throw = internal.Throw
 var Assert = internal.Assert
-var Resp = internal.Resp
+var Resp = func(fn func(err *Err)) {
+	internal.Resp(fn)
+}
+var RespErr = internal.RespErr
 var ErrLog = internal.ErrLog
 var ErrHandle = internal.ErrHandle
 var Debug = internal.Debug
 
+// test
 type Test = internal.Test
-var TestRun = internal.TestRun
+
+var TestRun = func(fn interface{}, desc func(desc func(string) *Test)) {
+	internal.TestRun(fn, desc)
+}
 
 // config
 var Cfg = &internal.Cfg
@@ -44,10 +55,11 @@ var IsNone = internal.IsNone
 var P = internal.P
 var FuncCaller = internal.FuncCaller
 var GetCallerFromFn = internal.GetCallerFromFn
+var LoadEnvFile = internal.LoadEnvFile
+var InitDebug = internal.InitDebug
 
 // try
 var Try = internal.Try
-var TryRaw = internal.TryRaw
 var Retry = internal.Retry
 var RetryAt = internal.RetryAt
 var Ticker = internal.Ticker
@@ -55,20 +67,25 @@ var Ticker = internal.Ticker
 
 ## test
 ```go
-package errors_test
+package tests_test
 
 import (
 	es "errors"
 	"fmt"
 	"github.com/pubgo/errors"
-	"github.com/rs/zerolog"
+	"github.com/pubgo/errors/internal"
+	"io/ioutil"
+	"os"
 	"reflect"
+	"runtime/trace"
+	"strings"
 	"testing"
 	"time"
 )
 
 func init() {
-	internal.InitDebugLog()
+	errors.InitDebug()
+	//internal.InitSkipErrorFile()
 }
 
 func TestCfg(t *testing.T) {
@@ -110,9 +127,12 @@ func TestIf(t *testing.T) {
 func TestTT(t *testing.T) {
 	defer errors.Assert()
 
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	_fn := func(b bool) {
-		errors.TT(b, "test tt").M("k", "v").SetTag("12").Done()
+		errors.TT(b, func(err *internal.Err) {
+			err.Msg("test tt")
+			err.M("k", "v")
+			err.SetTag("12")
+		})
 	}
 
 	errors.TestRun(_fn, func(desc func(string) *errors.Test) {
@@ -132,15 +152,15 @@ func TestWrap(t *testing.T) {
 func TestWrapM(t *testing.T) {
 	defer errors.Assert()
 
-	errors.WrapM(es.New("dd"), "test").
-		Done()
+	errors.Wrap(es.New("dd"), "test")
 }
 
 func testFunc_2() {
-	errors.WrapM(es.New("testFunc_1"), "test shhh").
-		M("ss", 1).
-		M("input", 2).
-		Done()
+	errors.WrapM(es.New("testFunc_1"), func(err *internal.Err) {
+		err.Msg("test shhh")
+		err.M("ss", 1)
+		err.M("input", 2)
+	})
 }
 
 func testFunc_1() {
@@ -154,7 +174,6 @@ func testFunc() {
 func TestErrLog(t *testing.T) {
 	defer errors.Assert()
 
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	errors.TestRun(testFunc, func(desc func(string) *errors.Test) {
 		desc("test func").In().IsErr()
 	})
@@ -244,7 +263,7 @@ func TestResp(t *testing.T) {
 
 	errors.TestRun(errors.Resp, func(desc func(string) *errors.Test) {
 		desc("resp ok").In(func(err *errors.Err) {
-			err = err.Caller(errors.FuncCaller(2))
+			err.Caller(errors.FuncCaller(2))
 		}).IsNil()
 	})
 
@@ -280,17 +299,21 @@ func TestErr(t *testing.T) {
 }
 
 func _GetCallerFromFn2() {
-	errors.WrapM(es.New("test 123"), "test GetCallerFromFn").
-		M("ss", "dd").
-		Done()
+	errors.WrapM(es.New("test 123"), func(err *internal.Err) {
+		err.Msg("test GetCallerFromFn")
+		err.M("ss", "dd")
+	})
 }
 
 func _GetCallerFromFn1(fn func()) {
+	errors.Panic(errors.AssertFn(reflect.ValueOf(fn)))
 	fn()
 }
 
 func TestGetCallerFromFn(t *testing.T) {
 	defer errors.Assert()
+
+	fmt.Println(errors.GetCallerFromFn(reflect.ValueOf(_GetCallerFromFn1)))
 
 	errors.TestRun(_GetCallerFromFn1, func(desc func(string) *errors.Test) {
 		desc("GetCallerFromFn ok").In(_GetCallerFromFn2).IsErr()
@@ -311,7 +334,6 @@ func TestErrTagRegistry(t *testing.T) {
 
 func TestTest(t *testing.T) {
 	defer errors.Assert()
-	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
 	errors.TestRun(errors.AssertFn, func(desc func(string) *errors.Test) {
 		desc("params is func 1").
@@ -343,12 +365,49 @@ func TestTest(t *testing.T) {
 func TestThrow(t *testing.T) {
 	defer errors.Assert()
 
-	//zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-
 	errors.TestRun(errors.Throw, func(desc func(string) *errors.Test) {
 		desc("not func type params").In(es.New("ss")).IsErr()
 		desc("func type params").In(func() {}).IsNil()
 		desc("nil type params").In(nil).IsErr()
+	})
+}
+
+func TestLoadEnv(t *testing.T) {
+	errors.LoadEnvFile("../.env")
+	errors.T(os.Getenv("a") != "1", "env error")
+}
+
+func init2() (err error) {
+	defer errors.RespErr(&err)
+
+	errors.TT(true, func(err *errors.Err) {
+		err.Msg("ok sss %d", 23)
+	})
+	return
+}
+
+func TestSig(t *testing.T) {
+	defer errors.Assert()
+	errors.Panic(init2())
+}
+
+func TestIsNone(t *testing.T) {
+	defer errors.Debug()
+
+	buf := &strings.Builder{}
+	trace.Start(buf)
+	defer func() {
+		ioutil.WriteFile("trace.log", []byte(buf.String()), 0666)
+	}()
+	defer trace.Stop()
+
+	errors.TestRun(errors.IsNone, func(desc func(string) *errors.Test) {
+		desc("is null").In(nil).IsNil(func(b bool) {
+			errors.T(b != true, "error")
+		})
+		desc("is ok").In("ok").IsNil(func(b bool) {
+			errors.T(b == false, "error")
+		})
 	})
 }
 ```
