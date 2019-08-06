@@ -328,7 +328,7 @@ func TestIsNone(t *testing.T) {
 	buf := &strings.Builder{}
 	trace.Start(buf)
 	defer func() {
-		ioutil.WriteFile("trace.log",[]byte(buf.String()),0666)
+		ioutil.WriteFile("trace.log", []byte(buf.String()), 0666)
 	}()
 	defer trace.Stop()
 

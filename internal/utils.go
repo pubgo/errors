@@ -95,11 +95,11 @@ func LoadEnvFile(envPath string) {
 	dt, err := ioutil.ReadFile(_p)
 	Wrap(err, "%s ReadFile error", envPath)
 	for _, env := range strings.Split(string(dt), "\n") {
-		envA := strings.Split(env, "=")
+		envA := strings.Split(strings.TrimSpace(env), "=")
 		if len(envA) != 2 {
 			continue
 		}
-		
-		Panic(os.Setenv(envA[0], envA[1]))
+
+		Wrap(os.Setenv(envA[0], envA[1]), "set env error")
 	}
 }
