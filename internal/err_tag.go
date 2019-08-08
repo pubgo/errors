@@ -1,5 +1,7 @@
 package internal
 
+import "reflect"
+
 var errTags = struct {
 	UnknownTypeCode string
 }{
@@ -8,12 +10,29 @@ var errTags = struct {
 
 var _errTags = make(map[string]bool)
 
-func ErrTagRegistry(tags ...string) {
+func ErrTagRegistry(tags ...interface{}) {
 	for _, tag := range tags {
-		if _, ok := _errTags[tag]; ok {
-			T(ok, "tag %s has existed", tag)
+		if IsNone(tag) {
+			continue
 		}
-		_errTags[tag] = true
+
+		var _tags []string
+		t := reflect.ValueOf(tag)
+		switch t.Kind() {
+		case reflect.String:
+			_tags = append(_tags, tag.(string))
+		case reflect.Ptr, reflect.Struct:
+			for i := 0; i < t.NumField(); i++ {
+				_tags = append(_tags, t.Field(i).String())
+			}
+		}
+
+		for _, t := range _tags {
+			if _, ok := _errTags[t]; ok {
+				T(ok, "tag %s has existed", t)
+			}
+			_errTags[t] = true
+		}
 	}
 }
 
