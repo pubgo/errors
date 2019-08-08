@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pubgo/errors"
 	"github.com/pubgo/errors/internal"
+	"github.com/pubgo/errors/test"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -24,14 +25,14 @@ func TestCfg(t *testing.T) {
 }
 
 func TestT(t *testing.T) {
-	errors.TestRun(errors.T, func(desc func(string) *errors.Test) {
+	test.Run(errors.T, func(desc func(string) *test.Test) {
 		desc("params is true").In(true, "test t").IsErr()
 		desc("params is false").In(false, "test t").IsNil()
 	})
 }
 
 func TestErrLog2(t *testing.T) {
-	errors.TestRun(errors.ErrLog, func(desc func(string) *errors.Test) {
+	test.Run(errors.ErrLog, func(desc func(string) *test.Test) {
 		desc("err log params").In(es.New("sss")).IsNil()
 		desc("nil params").In(es.New("sss")).IsNil()
 	})
@@ -40,7 +41,7 @@ func TestErrLog2(t *testing.T) {
 func TestRetry(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TestRun(errors.Retry, func(desc func(string) *errors.Test) {
+	test.Run(errors.Retry, func(desc func(string) *test.Test) {
 		desc("retry(3)").In(3, func() {
 			errors.T(true, "test t")
 		}).IsErr(func(err error) {
@@ -66,7 +67,7 @@ func TestTT(t *testing.T) {
 		})
 	}
 
-	errors.TestRun(_fn, func(desc func(string) *errors.Test) {
+	test.Run(_fn, func(desc func(string) *test.Test) {
 		desc("true params 1").In(true).IsErr()
 		desc("true params 2").In(true).IsErr()
 		desc("true params 3").In(true).IsErr()
@@ -105,7 +106,7 @@ func testFunc() {
 func TestErrLog(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TestRun(testFunc, func(desc func(string) *errors.Test) {
+	test.Run(testFunc, func(desc func(string) *test.Test) {
 		desc("test func").In().IsErr()
 	})
 }
@@ -117,7 +118,7 @@ func init11() {
 func TestT2(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TestRun(init11, func(desc func(string) *errors.Test) {
+	test.Run(init11, func(desc func(string) *test.Test) {
 		desc("simple test").In().IsErr()
 	})
 }
@@ -192,7 +193,7 @@ func TestIsZero(t *testing.T) {
 func TestResp(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TestRun(errors.Resp, func(desc func(string) *errors.Test) {
+	test.Run(errors.Resp, func(desc func(string) *test.Test) {
 		desc("resp ok").In(func(err *errors.Err) {
 			err.Caller(errors.FuncCaller(2))
 		}).IsNil()
@@ -246,7 +247,7 @@ func TestGetCallerFromFn(t *testing.T) {
 
 	fmt.Println(errors.GetCallerFromFn(reflect.ValueOf(_GetCallerFromFn1)))
 
-	errors.TestRun(_GetCallerFromFn1, func(desc func(string) *errors.Test) {
+	test.Run(_GetCallerFromFn1, func(desc func(string) *test.Test) {
 		desc("GetCallerFromFn ok").In(_GetCallerFromFn2).IsErr()
 		desc("GetCallerFromFn nil").In(nil).IsErr()
 	})
@@ -266,7 +267,7 @@ func TestErrTagRegistry(t *testing.T) {
 func TestTest(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TestRun(errors.AssertFn, func(desc func(string) *errors.Test) {
+	test.Run(errors.AssertFn, func(desc func(string) *test.Test) {
 		desc("params is func 1").
 			In(reflect.ValueOf(func() {})).
 			IsNil(func(err error) {
@@ -296,7 +297,7 @@ func TestTest(t *testing.T) {
 func TestThrow(t *testing.T) {
 	defer errors.Assert()
 
-	errors.TestRun(errors.Throw, func(desc func(string) *errors.Test) {
+	test.Run(errors.Throw, func(desc func(string) *test.Test) {
 		desc("not func type params").In(es.New("ss")).IsErr()
 		desc("func type params").In(func() {}).IsNil()
 		desc("nil type params").In(nil).IsErr()
@@ -332,7 +333,7 @@ func TestIsNone(t *testing.T) {
 	}()
 	defer trace.Stop()
 
-	errors.TestRun(errors.IsNone, func(desc func(string) *errors.Test) {
+	test.Run(errors.IsNone, func(desc func(string) *test.Test) {
 		desc("is null").In(nil).IsNil(func(b bool) {
 			errors.T(b != true, "error")
 		})

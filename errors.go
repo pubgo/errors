@@ -29,13 +29,6 @@ var ErrLog = internal.ErrLog
 var ErrHandle = internal.ErrHandle
 var Debug = internal.Debug
 
-// test
-type Test = internal.Test
-
-var TestRun = func(fn interface{}, desc func(desc func(string) *Test)) {
-	internal.TestRun(fn, desc)
-}
-
 // config
 var Cfg = &internal.Cfg
 

@@ -6,70 +6,7 @@ import (
 	"os"
 	"reflect"
 	"runtime/debug"
-	"strings"
 )
-
-type Test struct {
-	name string
-	desc string
-	fn   interface{}
-	args []interface{}
-}
-
-func (t *Test) In(args ...interface{}) *Test {
-	return &Test{fn: t.fn, args: args, desc: t.desc, name: t.name}
-}
-
-func (t *Test) _Err(b bool, fn ...interface{}) {
-	fmt.Printf("  [Desc func %s] [%s]\n", Green(t.name+" start"), t.desc)
-	_err := Try(t.fn)(t.args...)(fn...)
-	_isErr := IsNone(_err)
-
-	if (b && !_isErr) || (!b && _isErr) {
-		fmt.Printf("  [Desc func %s] --> %s\n", Green(t.name+" ok"), FuncCaller(3))
-	} else {
-		fmt.Printf("  [Desc func %s] --> %s\n", Red(t.name+" fail"), FuncCaller(3))
-	}
-
-	if IsDebug() {
-		ErrLog(_err)
-	}
-
-	TT((b && _isErr) || (!b && !_isErr), func(err *Err) {
-		err.Msg("%s test error", t.name)
-		err.M("input", t.args)
-		err.M("desc", t.desc)
-		err.M("func_name", t.name)
-	})
-
-}
-
-func (t *Test) IsErr(fn ...interface{}) {
-	t._Err(true, fn...)
-}
-
-func (t *Test) IsNil(fn ...interface{}) {
-	t._Err(false, fn...)
-}
-
-func TestRun(fn interface{}, desc func(desc func(string) *Test)) {
-	Wrap(AssertFn(reflect.ValueOf(fn)), "func error")
-
-	_name := strings.Split(GetCallerFromFn(reflect.ValueOf(fn)), " ")[1]
-	_funcName := strings.Split(GetCallerFromFn(reflect.ValueOf(fn)), " ")[1] + strings.TrimLeft(reflect.TypeOf(fn).String(), "func")
-	_path := strings.Split(GetCallerFromFn(reflect.ValueOf(desc)), " ")[0]
-
-	fmt.Printf("[Test func %s] [%s] --> %s\n", Green(_name+" start"), _funcName, _path)
-	_err := Try(desc)(func(s string) *Test {
-		return &Test{desc: s, fn: fn, name: _name}
-	})()
-	if _err != nil {
-		fmt.Printf("[Test func %s]\n", Red(_name+" fail"))
-	} else {
-		fmt.Printf("[Test func %s]\n", Green(_name+" success"))
-	}
-	Panic(_err)
-}
 
 func ErrLog(err interface{}) {
 	ErrHandle(err, func(err *Err) {
