@@ -90,7 +90,11 @@ func GetOkOnce(fn func() bool) func() bool {
 }
 
 func LoadEnvFile(envPath string) (err error) {
-	defer RespErr(&err)
+	defer func() {
+		ErrHandle(recover(), func(_err *Err) {
+			err = _err
+		})
+	}()
 
 	_p, err := filepath.EvalSymlinks(envPath)
 	Wrap(err, "%s EvalSymlinks error", envPath)
