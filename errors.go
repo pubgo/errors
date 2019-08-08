@@ -1,7 +1,11 @@
 package errors
 
 import (
+	"fmt"
 	"github.com/pubgo/errors/internal"
+	"os"
+	"reflect"
+	"runtime/debug"
 )
 
 // Err
@@ -20,11 +24,30 @@ var T = internal.T
 
 // error handle
 var Throw = internal.Throw
-var Assert = internal.Assert
-var Resp = func(fn func(err *Err)) {
-	internal.Resp(fn)
+
+func Assert() {
+	ErrHandle(recover(), func(err *Err) {
+		if internal.IsDebug() {
+			fmt.Println(err.P())
+			debug.PrintStack()
+		}
+		os.Exit(1)
+	})
 }
-var RespErr = internal.RespErr
+
+func Resp(fn func(err *Err)) {
+	ErrHandle(recover(), func(err *Err) {
+		err.Caller(GetCallerFromFn(reflect.ValueOf(fn)))
+		fn(err)
+	})
+}
+
+func RespErr(err *error) {
+	ErrHandle(recover(), func(_err *Err) {
+		*err = _err
+	})
+}
+
 var ErrLog = internal.ErrLog
 var ErrHandle = internal.ErrHandle
 var Debug = internal.Debug

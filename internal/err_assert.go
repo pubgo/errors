@@ -26,6 +26,7 @@ func TT(b bool, fn func(err *Err)) {
 	if !b {
 		return
 	}
+
 	_err := &Err{caller: _funcCaller(callDepth + 2)}
 	fn(_err)
 
@@ -38,7 +39,7 @@ func TT(b bool, fn func(err *Err)) {
 }
 
 func Panic(err interface{}) {
-	if err == nil {
+	if err == nil || IsNone(err) {
 		return
 	}
 
@@ -56,7 +57,7 @@ func Panic(err interface{}) {
 }
 
 func Wrap(err interface{}, msg string, args ...interface{}) {
-	if err == nil {
+	if err == nil || IsNone(err) {
 		return
 	}
 
@@ -75,7 +76,7 @@ func Wrap(err interface{}, msg string, args ...interface{}) {
 }
 
 func WrapM(err interface{}, fn func(err *Err)) {
-	if err == nil {
+	if err == nil || IsNone(err) {
 		return
 	}
 

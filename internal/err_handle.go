@@ -3,7 +3,6 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"runtime/debug"
 )
@@ -22,16 +21,6 @@ func Debug() {
 	})
 }
 
-func Assert() {
-	ErrHandle(recover(), func(err *Err) {
-		if IsDebug() {
-			fmt.Println(err.P())
-			debug.PrintStack()
-		}
-		os.Exit(1)
-	})
-}
-
 func Throw(fn interface{}) {
 	_fn := reflect.ValueOf(fn)
 	T(fn == nil || IsZero(_fn) || _fn.Kind() != reflect.Func, "the input must be func type and not null, input --> %#v", fn)
@@ -39,19 +28,6 @@ func Throw(fn interface{}) {
 	ErrHandle(recover(), func(err *Err) {
 		err.Caller(GetCallerFromFn(_fn))
 		panic(err)
-	})
-}
-
-func Resp(fn func(err *Err)) {
-	ErrHandle(recover(), func(err *Err) {
-		err.Caller(GetCallerFromFn(reflect.ValueOf(fn)))
-		fn(err)
-	})
-}
-
-func RespErr(err *error) {
-	ErrHandle(recover(), func(_err *Err) {
-		*err = _err
 	})
 }
 
